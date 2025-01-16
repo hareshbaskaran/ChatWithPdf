@@ -3,7 +3,7 @@ from services.llms import GeminiLLMProvider
 from services.loaders import PDFLoader
 from services.chunkers import RTChunker
 from services.vectordbs import FAISSVectorStore
-from utils.configs import VECTOR_DB_PATH
+from utils.variables import VECTOR_DB_PATH
 
 
 ########### run pdf - ingestion ###############

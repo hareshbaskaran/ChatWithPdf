@@ -7,7 +7,6 @@ from typing import List
 
 
 ### Works only for Local Storage - VectorDB Indexes ###
-# todo: comment and black style
 class BaseVectorStore(ABC):
     def __init__(
         self, docs: List[Document], embeddings: Embeddings, vector_db_path: str
