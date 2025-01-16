@@ -5,8 +5,9 @@ from typing import List
 
 
 class BaseChunker(ABC):
-    def __init__(self,docs: List[Document]):
+    def __init__(self, docs: List[Document]):
         self.docs = docs
+
     @abstractmethod
     def split_docs(self) -> List[Document]:
         """
@@ -17,10 +18,9 @@ class BaseChunker(ABC):
 
 
 class RTChunker(BaseChunker):
-    def __init__(self,docs: List[Document]):
-        super().__init__(
-            docs=docs
-        )
+    def __init__(self, docs: List[Document]):
+        super().__init__(docs=docs)
+
     def split_docs(self) -> List[Document]:
         """
         This method should be implemented as a Recursive Character Text Splitter

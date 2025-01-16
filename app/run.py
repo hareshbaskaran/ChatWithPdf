@@ -13,7 +13,9 @@ def main():
     docs = doc_chunker.split_docs()
 
     db = FAISSVectorStore(
-        docs=docs, embeddings=HFEmbeddings().get_embeddings(), vector_db_path=VECTOR_DB_PATH
+        docs=docs,
+        embeddings=HFEmbeddings().get_embeddings(),
+        vector_db_path=VECTOR_DB_PATH,
     )
     get_db = db.get_vdb()
 
@@ -22,4 +24,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

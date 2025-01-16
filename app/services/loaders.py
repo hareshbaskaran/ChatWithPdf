@@ -5,11 +5,9 @@ from typing import List, Optional
 
 
 class BaseLoader(ABC):
-    def __init__(
-            self,
-            doc_path: str
-    ):
+    def __init__(self, doc_path: str):
         self.doc_path = doc_path
+
     @abstractmethod
     def get_docs(self) -> List[Document]:
         """
@@ -21,10 +19,9 @@ class BaseLoader(ABC):
 
 
 class PDFLoader(BaseLoader):
-    def __init__(self,doc_path: str):
-        super().__init__(
-            doc_path=doc_path
-        )
+    def __init__(self, doc_path: str):
+        super().__init__(doc_path=doc_path)
+
     def get_docs(self) -> List[Document]:
         """
         This method should be an Implementation of BaseLoader for PDF documents
