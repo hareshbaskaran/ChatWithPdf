@@ -11,8 +11,8 @@ class BaseLLMProvider(ABC):
     @abstractmethod
     def get_llm(self) -> BaseChatModel:
         """
-        This method should be implemented by concrete LLM providers to return
-        an instance of a specific LLM (Language Model) class.
+        This method should be implemented as a Base LLM providers
+        :return: an instance of a specific LLM (Language Model) class.
         """
         pass
 

@@ -1,12 +1,10 @@
 ######### routes/ingest-pdf ######################
 
-## step1 : get PDF from FASTAPI client
-## step2 :
 
 parameters :
 
 - PDFFile - get PDF from API
-     - get_pdffile_path -> return List[Documents]
+     - get_doc -> return List[Documents]
 
 
 - LLMProvider - return GeminiLLMProvider() | (depnds_on : None)
@@ -46,3 +44,16 @@ parameters :
     - get_retriever -> VectorStoreRetriever
         - self.add_docs() -> convert as retriever
 
+
+run :
+
+## step 1 : get_doc
+     -> loader = PyPDFLoader(csv_path)
+     -> loader.load()
+## step 2 : split_docs
+    -> splitter = CharacterTextSplit(chunk_size = 1000, chunk_overlap=0)
+    -> docs = splitter.split_documents(get_doc())
+## step 3 : get_embeddings
+    -> embeddings = HuggingFaceEmbedings()
+## Step 4 : add_docs_to_vdb
+    -> FAISS.from_documents(docs,embeddings)
