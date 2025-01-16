@@ -5,14 +5,12 @@ from langchain_core.retrievers import BaseRetriever
 from abc import ABC, abstractmethod
 from typing import List
 
+
 ### Works only for Local Storage - VectorDB Indexes ###
-#todo: comment and black style
+# todo: comment and black style
 class BaseVectorStore(ABC):
     def __init__(
-            self,
-            docs: List[Document],
-            embeddings: Embeddings,
-            vector_db_path: str
+        self, docs: List[Document], embeddings: Embeddings, vector_db_path: str
     ):
         self.docs = docs
         self.embeddings = embeddings
@@ -26,9 +24,7 @@ class BaseVectorStore(ABC):
         pass
 
     @abstractmethod
-    def add_docs_to_vector_db(
-            self
-    ) -> None:
+    def add_docs_to_vector_db(self) -> None:
         pass
 
     @abstractmethod
@@ -36,19 +32,12 @@ class BaseVectorStore(ABC):
         pass
 
 
-
-
 class FAISSVectorStore(BaseVectorStore):
     def __init__(
-            self,
-            docs: List[Document],
-            embeddings: Embeddings,
-            vector_db_path: str
+        self, docs: List[Document], embeddings: Embeddings, vector_db_path: str
     ):
         super().__init__(
-            docs=docs,
-            embeddings=embeddings,
-            vector_db_path=vector_db_path
+            docs=docs, embeddings=embeddings, vector_db_path=vector_db_path
         )
 
     def add_docs_to_vector_db(self):
@@ -66,12 +55,9 @@ class FAISSVectorStore(BaseVectorStore):
         return FAISS.load_local(
             folder_path=self.vector_db_path,
             embeddings=self.embeddings,
-            allow_dangerous_deserialization=True
+            allow_dangerous_deserialization=True,
         )
 
     def get_vdb_as_retriever(self):
         db = self.get_vdb()
         return db.as_retriever()
-
-
-

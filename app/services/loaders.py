@@ -16,7 +16,6 @@ class BaseLoader(ABC):
 
 
 class PDFLoader(BaseLoader):
-
     def get_docs(self, doc_path: Optional[str] = None) -> List[Document]:
         """
         This method should be an Implementation of BaseLoader for PDF documents
