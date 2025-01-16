@@ -1,24 +1,26 @@
-from abc import ABC, abstractmethod, abstractproperty
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from typing import Optional, Any
+from abc import ABC, abstractmethod
+from langchain.document_loaders import PyPDFLoader
+from langchain_core.documents import Document
+from typing import List, Optional
 
 
-class BaseEmbeddings(ABC):
-
+class BaseLoader(ABC):
     @abstractmethod
-    def get_embeddings(self) -> Any:
-        """
-        This method shoudl be implemented by Embedding Model Providers to return
-        an instance of a specific EmbeddingModel class
-        """
-
+    def get_docs(self, doc_path: Optional[str] = None) -> List[Document]:
         pass
 
 
-class HFEmbeddings(BaseEmbeddings):
+class PDFLoader(BaseLoader):
 
-    def get_embeddings(self) -> HuggingFaceEmbeddings:
-        """
-        This method return an instance of HuggingFaceEmbeddings
-        """
-        return HuggingFaceEmbeddings()
+    def get_docs(self, doc_path: Optional[str] = None) -> List[Document]:
+        final_path = doc_path
+
+        # Ensure we have a path to work with
+        if not final_path:
+            raise ValueError(
+                "doc_path must be provided either during initialization or method call"
+            )
+
+        # Load PDF file from the given doc_path
+        loader = PyPDFLoader(final_path)
+        return loader.load()
