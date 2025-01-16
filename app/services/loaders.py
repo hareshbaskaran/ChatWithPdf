@@ -5,8 +5,13 @@ from typing import List, Optional
 
 
 class BaseLoader(ABC):
+    def __init__(
+            self,
+            doc_path: str
+    ):
+        self.doc_path = doc_path
     @abstractmethod
-    def get_docs(self, doc_path: Optional[str] = None) -> List[Document]:
+    def get_docs(self) -> List[Document]:
         """
         This Method should be Implemented as Base Document Loader
         :param: Document(s) | DocumentPath
@@ -16,7 +21,11 @@ class BaseLoader(ABC):
 
 
 class PDFLoader(BaseLoader):
-    def get_docs(self, doc_path: Optional[str] = None) -> List[Document]:
+    def __init__(self,doc_path: str):
+        super().__init__(
+            doc_path=doc_path
+        )
+    def get_docs(self) -> List[Document]:
         """
         This method should be an Implementation of BaseLoader for PDF documents
         :param doc_path:
@@ -25,10 +34,10 @@ class PDFLoader(BaseLoader):
 
         # raise ValueError :
         # doc_path is not passed as a parameter
-        if not doc_path:
+        if not self.doc_path:
             raise ValueError(
                 "doc_path must be provided either during initialization or method call"
             )
 
         # return PDF loader of this instance
-        return PyPDFLoader(doc_path).load()
+        return PyPDFLoader(self.doc_path).load()
