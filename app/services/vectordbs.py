@@ -4,36 +4,40 @@ from langchain_core.embeddings import Embeddings
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-
+### Works only for Local Storage - VectorDB Indexes ###
+#todo: comment and black style
 class BaseVectorStore(ABC):
-    def __init__(self, vector_db_name: str):
-        self.vector_db_name = vector_db_name
+
+    # Instantiate vector_db_name, vector_db_path :
+    # pass by vector_db_name
 
     @abstractmethod
     def add_docs_to_vector_db(
             self,
             docs: List[Document],
             embeddings: Embeddings,
-            vector_db_path: Optional[str] = None,
+            vector_db_path: str,
+            vector_store: None
     ):
         pass
 
 
 class FAISSVectorStore(BaseVectorStore):
-    def __init__(self, vector_db_name: str = "faiss_index"):
-        super().__init__(vector_db_name)
-        self.vector_store = None
 
     def add_docs_to_vector_db(
             self,
-            docs: List[Document],
+            docs: Optional[List[Document]],
             embeddings: Embeddings,
-            vector_db_path: Optional[str] = None,
+            vector_db_path: str,
+            vector_store: None
     ):
         if not docs:
-            raise ValueError("Document list cannot be empty")
+            return FAISS.load_local(
+                vector_db_path, embeddings, allow_dangerous_deserialization=True
+            )
 
-        # Load existing vector store or create a new one
+
+        ### Handle Vector Store
         try:
             self.vector_store = FAISS.load_local(
                 vector_db_path, embeddings, allow_dangerous_deserialization=True
@@ -46,8 +50,9 @@ class FAISSVectorStore(BaseVectorStore):
         self.vector_store.add_documents(documents=docs, embedding=embeddings)
 
         # Save vector store if path is provided
-        if vector_db_path:
-            self.vector_store.save_local(vector_db_path)
+        self.vector_store.save_local(vector_db_path)
 
         return self.vector_store
+
+
 
