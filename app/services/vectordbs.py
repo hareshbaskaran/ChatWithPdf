@@ -16,8 +16,7 @@ class BaseVectorStore(ABC):
             self,
             docs: List[Document],
             embeddings: Embeddings,
-            vector_db_path: str,
-            vector_store: None
+            vector_db_path: str
     ):
         pass
 
@@ -28,8 +27,7 @@ class FAISSVectorStore(BaseVectorStore):
             self,
             docs: Optional[List[Document]],
             embeddings: Embeddings,
-            vector_db_path: str,
-            vector_store: None
+            vector_db_path: str
     ):
         if not docs:
             return FAISS.load_local(
@@ -37,22 +35,15 @@ class FAISSVectorStore(BaseVectorStore):
             )
 
 
-        ### Handle Vector Store
-        try:
-            self.vector_store = FAISS.load_local(
-                vector_db_path, embeddings, allow_dangerous_deserialization=True
-            )
-        except Exception as e:
-            print(f"Loading vector store failed: {e}. Creating a new one.")
-            self.vector_store = FAISS.from_documents(docs, embeddings)
+        vector_store = FAISS.from_documents(docs, embeddings)
 
         # Add documents to the vector store
-        self.vector_store.add_documents(documents=docs, embedding=embeddings)
+        vector_store.add_documents(documents=docs, embedding=embeddings)
 
         # Save vector store if path is provided
-        self.vector_store.save_local(vector_db_path)
+        vector_store.save_local(vector_db_path)
 
-        return self.vector_store
+        return vector_store
 
 
 
