@@ -9,12 +9,9 @@ from utils.helpers import (
     is_duplicate,
 )
 from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
-from models.response import PDFUploadResponse, LLMResponse
+from app.utils.models import PDFUploadResponse, QAResponse
 from langchain.indexes import index
 import os
-
-# todo: comment and black style
 
 app = FastAPI()
 
@@ -23,6 +20,7 @@ def health_check():
     return {
         "status" : "OK"
     }
+
 @app.post("/upload-pdf", response_model=PDFUploadResponse)
 async def upload_pdf(file: UploadFile = File(...)):
     ## Instantiate file_path / record_manager
@@ -75,7 +73,19 @@ async def upload_pdf(file: UploadFile = File(...)):
             os.remove(temp_file_path)
 
 
-@app.post("/chat-with-pdf-langchain")
+@app.post("/")
+async def chat_with_pdf_lc(
+        query: str = Form(...)
+):
+    """
+
+    :param query:
+    :return:
+    """
+
+    llm_provider = GeminiLLMProvider()
+    llm = llm_provider.get_llm()
+@app.post("/chat-with-pdf-qaretrival")
 async def chat_with_pdf(query: str = Form(...)):
     """
     Chat with Vector DB
@@ -89,26 +99,29 @@ async def chat_with_pdf(query: str = Form(...)):
     vector_store = get_vector_store()
     retriever = vector_store.get_vdb_as_retriever()
 
-    # Define the prompt template for the RetrievalQA chain
-    prompt_template = PromptTemplate(
-        input_variables=["question"],
-        template="You are an AI assistant helping with document analysis. Answer the following question based on the information in the documents:\n\n{question}"
-    )
 
-    # Create the RetrievalQA chain
+    ### retriver analysis
+
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
-        chain_type="stuff",
         retriever=retriever,
-        chain_type_kwargs={"prompt": prompt_template},
+        return_source_documents=True
     )
 
-    # Use the chain to get an answer to the query
-    response = qa_chain.run(query)
+    result = qa_chain(
+        {"query":query}
+    )
 
-    return {
-        "answer" : response
+    sources = [doc.metadata.get("source") for doc in result["source_documents"]]
+
+    parsed_result = {
+        "response" : result["result"],
+        "citations" : list(set(sources))
     }
+    # Print the parsed result
+    print(parsed_result)
+    return parsed_result
+
 
 
 

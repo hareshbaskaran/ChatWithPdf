@@ -11,6 +11,7 @@ python-multipart
 uvicorn
 faiss-cpu
 torch
+lark==1.1.5
 transformers
 sentence-transformers
 opencv-python

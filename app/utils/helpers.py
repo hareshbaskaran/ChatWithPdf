@@ -34,6 +34,7 @@ def process_doc(doc_path):
 
 def get_vector_store():
     return FAISSVectorStore(
+
         embeddings=HFEmbeddings().get_embeddings(),
         vector_db_path=VECTOR_DB_PATH,
     )
