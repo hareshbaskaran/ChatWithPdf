@@ -1,12 +1,15 @@
 from fastapi import FastAPI, Form, File, UploadFile, HTTPException
 from app.utils.variables import SQL_MANAGER_NAMESPACE, SQLITE_DB_URL
+from services.llms import GeminiLLMProvider
 from utils.helpers import (
     handle_temp_dir,
     instantiate_record_manager,
     process_doc,
-    get_vdb,
+    get_vector_store,
     is_duplicate,
 )
+from langchain.chains import RetrievalQA
+from langchain.prompts import PromptTemplate
 from models.response import PDFUploadResponse, LLMResponse
 from langchain.indexes import index
 import os
@@ -34,12 +37,16 @@ async def upload_pdf(file: UploadFile = File(...)):
         docs = process_doc(temp_file_path)
 
         # get vector database
-        db = get_vdb(docs)
+        vector_store = get_vector_store()
 
         ### add to index
 
         idx = index(
-            docs, record_manager, vector_store=db, cleanup=None, source_id_key="source"
+            docs,
+            record_manager,
+            vector_store=vector_store.get_vdb(),
+            cleanup=None,
+            source_id_key="source"
         )
 
         # Determine if the document is a duplicate
@@ -47,7 +54,7 @@ async def upload_pdf(file: UploadFile = File(...)):
 
         ## if no dupliactes present add docs to vector_db
         if not is_dup:
-            db.add_docs_to_vector_db()
+            vector_store.add_docs_to_vector_db()
 
         # Return the response
         return PDFUploadResponse(
@@ -75,8 +82,32 @@ async def chat_with_pdf(query: str = Form(...)):
     :param query:
     :return:
     """
+    # instantiate LLM
+    llm_provider = GeminiLLMProvider()
+    llm = llm_provider.get_llm()
+    # Load the vector store and retrieve the retriever
+    vector_store = get_vector_store()
+    retriever = vector_store.get_vdb_as_retriever()
 
-    return None
+    # Define the prompt template for the RetrievalQA chain
+    prompt_template = PromptTemplate(
+        input_variables=["question"],
+        template="You are an AI assistant helping with document analysis. Answer the following question based on the information in the documents:\n\n{question}"
+    )
+
+    # Create the RetrievalQA chain
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=retriever,
+        chain_type_kwargs={"prompt": prompt_template},
+    )
+
+    # Use the chain to get an answer to the query
+    response = qa_chain.run(query)
+
+    return LLMResponse(answer=response)
+
 
 
 if __name__ == "__main__":

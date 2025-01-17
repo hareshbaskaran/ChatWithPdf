@@ -32,12 +32,11 @@ def process_doc(doc_path):
     return chunked_docs
 
 
-def get_vdb(docs):
+def get_vector_store():
     return FAISSVectorStore(
-        docs=docs,
         embeddings=HFEmbeddings().get_embeddings(),
         vector_db_path=VECTOR_DB_PATH,
-    ).get_vdb()
+    )
 
 
 def is_duplicate(idx: index, docs):
