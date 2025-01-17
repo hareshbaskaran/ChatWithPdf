@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, Form, File, UploadFile, HTTPException
 from app.utils.variables import SQL_MANAGER_NAMESPACE, SQLITE_DB_URL
 from utils.helpers import (
     handle_temp_dir,
@@ -7,7 +7,7 @@ from utils.helpers import (
     get_vdb,
     is_duplicate,
 )
-from models.response import PDFUploadResponse
+from models.response import PDFUploadResponse, LLMResponse
 from langchain.indexes import index
 import os
 
@@ -15,7 +15,11 @@ import os
 
 app = FastAPI()
 
-
+@app.post("/")
+def health_check():
+    return {
+        "status" : "OK"
+    }
 @app.post("/upload-pdf", response_model=PDFUploadResponse)
 async def upload_pdf(file: UploadFile = File(...)):
     ## Instantiate file_path / record_manager
@@ -62,6 +66,17 @@ async def upload_pdf(file: UploadFile = File(...)):
         # clean up temp files
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
+
+
+@app.post("/chat-with-pdf", response_model=LLMResponse)
+async def chat_with_pdf(query: str = Form(...)):
+    """
+    Chat with Vector DB
+    :param query:
+    :return:
+    """
+
+    return None
 
 
 if __name__ == "__main__":
