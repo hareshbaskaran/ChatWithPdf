@@ -42,6 +42,8 @@ class FAISSVectorStore(BaseVectorStore):
     def add_docs_to_vector_db(self):
         vector_store = self.get_vdb()
 
+        vector_store.index()
+
         # Add documents to the vector store
         vector_store.add_documents(documents=self.docs, embedding=self.embeddings)
 

@@ -1,12 +1,18 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from pydantic import BaseModel
-from typing import Optional
 from app.services.embeddings import HFEmbeddings
 from app.services.loaders import PDFLoader
 from app.services.chunkers import RTChunker
 from app.services.vectordbs import FAISSVectorStore
-from app.utils.variables import VECTOR_DB_PATH
-from utils.helpers import handle_temp_dir
+from app.utils.variables import VECTOR_DB_PATH, SQL_MANAGER_NAMESPACE, SQLITE_DB_URL
+from utils.helpers import (
+    handle_temp_dir,
+    instantiate_record_manager,
+    process_doc,
+    get_vdb,
+    is_duplicate
+)
+from models.response import PDFUploadResponse
+from langchain.indexes import index, SQLRecordManager
 import os
 
 #todo: comment and black style
@@ -14,55 +20,46 @@ import os
 app = FastAPI()
 
 
-class PDFUploadResponse(BaseModel):
-    message: str
-    #similarity_results: Optional[list] = None
-
-
 @app.post("/upload-pdf", response_model=PDFUploadResponse)
 async def upload_pdf(file: UploadFile = File(...)):
 
-    temp_file_path = handle_temp_dir(file)
+    ## Instantiate file_path / record_manager
+    temp_file_path = await handle_temp_dir(file)
+
+    record_manager = instantiate_record_manager(
+        db_url=SQLITE_DB_URL,
+        namespace=SQL_MANAGER_NAMESPACE
+    )
 
     try:
-        # save uploded file temproarily
-        with open(temp_file_path, "wb") as temp_file:
-            temp_file.write(await file.read())
-
         # Process the PDF
-        pdf_loader = PDFLoader(doc_path=temp_file_path)
-        doc_chunker = RTChunker(docs=pdf_loader.get_docs())
-        docs = doc_chunker.split_docs()
+        docs = process_doc(temp_file_path)
 
-        # Init embeddings
-        embeddings = HFEmbeddings().get_embeddings()
+        # get vector database
+        db = get_vdb(docs)
 
-        # load vector store
-        db = FAISSVectorStore(
-            docs=docs,
-            embeddings=embeddings,
-            vector_db_path=VECTOR_DB_PATH,
+        ### add to index
+
+        idx = index(
+            docs,
+            record_manager,
+            vector_store=db,
+            cleanup=None,
+            source_id_key="source"
         )
 
-        #todo : handle indexes with langchain.indexes library using custom IndexManager -> Docs,SQL's
-        try:
-            # Try to load existing index
-            get_db = db.get_vdb()
-        except Exception as e:
-            # if fails, create new index
-            print(f"Creating new FAISS index at {VECTOR_DB_PATH}")
+        # Determine if the document is a duplicate
+        is_dup = is_duplicate(idx,docs)
+
+        ## if no dupliactes present add docs to vector_db
+        if not is_dup:
             db.add_docs_to_vector_db()
-            get_db = db.get_vdb()
 
-
-        """
-        similarity_results = get_db.similarity_search("vectors", k=5)
-        print(similarity_results)"""
-
+        # Return the response
         return PDFUploadResponse(
-            message="PDF uploaded and processed successfully.",
-            #similarity_results=similarity_results,
+            message="Document already uploaded" if is_duplicate else "PDF uploaded and processed successfully."
         )
+
 
     ## add extensions
     except Exception as e:
@@ -72,7 +69,7 @@ async def upload_pdf(file: UploadFile = File(...)):
         )
 
     finally:
-        # Clean up temporary files
+        # clean up temp files
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
 
