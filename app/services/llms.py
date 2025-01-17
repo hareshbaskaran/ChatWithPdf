@@ -21,12 +21,13 @@ class GeminiLLMProvider(BaseLLMProvider):
     provider_name = "Gemini"
     model_name = "gemini-1.5-flash"
 
-    def get_llm(self) -> ChatGoogleGenerativeAI:
+    @classmethod
+    def get_llm(cls) -> ChatGoogleGenerativeAI:
         """
         This method returns an instance of the ChatGoogleGenerativeAI model.
         """
         return ChatGoogleGenerativeAI(
-            model=self.model_name,
+            model=cls.model_name,
             temperature=0.7,
             top_p=0.85,
             google_api_key=GOOGLE_API_KEY,

@@ -1,6 +1,6 @@
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from typing import Optional, Any
+from typing import Any
 
 
 class BaseEmbeddings(ABC):
@@ -10,14 +10,14 @@ class BaseEmbeddings(ABC):
         This method should be implemented as Base Embedding Model Provider
         :return: an instance of a specific EmbeddingModel class
         """
-
         pass
 
 
 class HFEmbeddings(BaseEmbeddings):
-    def get_embeddings(self) -> HuggingFaceEmbeddings:
+    @classmethod
+    def get_embeddings(cls) -> HuggingFaceEmbeddings:
         """
-        This method should be Implementation as a HUggingFaceEmbedding Provider
+        This method should be Implementation as a HuggingFaceEmbedding Provider
         :return: an instance of HuggingFaceEmbeddings
         """
         return HuggingFaceEmbeddings()
