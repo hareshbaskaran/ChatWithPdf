@@ -75,7 +75,7 @@ async def upload_pdf(file: UploadFile = File(...)):
             os.remove(temp_file_path)
 
 
-@app.post("/chat-with-pdf", response_model=LLMResponse)
+@app.post("/chat-with-pdf-langchain")
 async def chat_with_pdf(query: str = Form(...)):
     """
     Chat with Vector DB
@@ -106,7 +106,9 @@ async def chat_with_pdf(query: str = Form(...)):
     # Use the chain to get an answer to the query
     response = qa_chain.run(query)
 
-    return LLMResponse(answer=response)
+    return {
+        "answer" : response
+    }
 
 
 
