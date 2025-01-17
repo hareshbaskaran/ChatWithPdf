@@ -9,11 +9,11 @@ import os
 app = FastAPI()
 ingest = PDFIngest()
 
+
 @app.post("/")
 def health_check():
-    return {
-        "status" : "OK"
-    }
+    return {"status": "OK"}
+
 
 @app.post("/upload-pdf", response_model=PDFUploadResponse)
 async def upload_pdf(file: UploadFile = File(...)):
@@ -21,7 +21,6 @@ async def upload_pdf(file: UploadFile = File(...)):
     temp_file_path = await ingest.handle_temp_dir(file)
 
     try:
-
         # Process the PDF
         docs = ingest.process_doc(doc_path=temp_file_path)
 
@@ -34,7 +33,7 @@ async def upload_pdf(file: UploadFile = File(...)):
             record_manager=ingest.instantiate_record_manager(),
             vector_store=vector_store.get_vdb(),
             cleanup=None,
-            source_id_key="source"
+            source_id_key="source",
         )
 
         # Determine if the document is a duplicate
@@ -83,17 +82,14 @@ async def chat_with_pdf(query: str = Form(...)):
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=vector_store.get_vdb_as_retriever(),
-        return_source_documents=True
+        return_source_documents=True,
     )
 
     # invoke results and source details
-    result = qa_chain({"query":query})
+    result = qa_chain({"query": query})
 
     # Parse to Pydantic JSON object
     return parse_to_pydantic(result)
-
-
-
 
 
 if __name__ == "__main__":

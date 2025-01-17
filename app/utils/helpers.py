@@ -7,6 +7,7 @@ from app.utils.variables import VECTOR_DB_PATH, SQL_MANAGER_NAMESPACE, SQLITE_DB
 from langchain.indexes import index, SQLRecordManager
 import os
 
+
 class PDFIngest:
     @staticmethod
     def instantiate_record_manager() -> SQLRecordManager:
@@ -14,12 +15,13 @@ class PDFIngest:
         Initializes and creates the schema for SQLRecordManager
         :return: Initialized SQLRecordManager instance
         """
-        record_manager = SQLRecordManager(namespace=SQL_MANAGER_NAMESPACE, db_url=SQLITE_DB_URL)
+        record_manager = SQLRecordManager(
+            namespace=SQL_MANAGER_NAMESPACE, db_url=SQLITE_DB_URL
+        )
         record_manager.create_schema()
         return record_manager
 
-
-    async def handle_temp_dir(self,file) -> str:
+    async def handle_temp_dir(self, file) -> str:
         """
         Handles saving the uploaded file to a temporary directory.
         :return: The path where the file is saved
@@ -65,14 +67,9 @@ class PDFIngest:
         return False
 
 
-
-
 ### Retrieval Chain Methods
 def parse_to_pydantic(result) -> Any:
     sources = [doc.metadata.get("source") for doc in result["source_documents"]]
 
-    parsed_result = {
-        "response" : result["result"],
-        "citations" : list(set(sources))
-    }
+    parsed_result = {"response": result["result"], "citations": list(set(sources))}
     return parsed_result

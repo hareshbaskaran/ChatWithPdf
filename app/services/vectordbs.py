@@ -6,9 +6,7 @@ from abc import ABC, abstractmethod
 
 ### Works only for Local Storage - VectorDB Indexes ###
 class BaseVectorStore(ABC):
-    def __init__(
-        self, embeddings: Embeddings, vector_db_path: str
-    ):
+    def __init__(self, embeddings: Embeddings, vector_db_path: str):
         """
         Initialize the BaseVectorStore class
         :param embeddings: Embedding model to be used for document embeddings
@@ -35,17 +33,13 @@ class BaseVectorStore(ABC):
 
 
 class FAISSVectorStore(BaseVectorStore):
-    def __init__(
-        self, embeddings: Embeddings, vector_db_path: str
-    ):
+    def __init__(self, embeddings: Embeddings, vector_db_path: str):
         """
         Initialize the FAISSVectorStore class
         :param embeddings: Embedding model to be used for document embeddings
         :param vector_db_path: Path where the vector database is stored
         """
-        super().__init__(
-            embeddings=embeddings, vector_db_path=vector_db_path
-        )
+        super().__init__(embeddings=embeddings, vector_db_path=vector_db_path)
 
     def add_docs_to_vector_db(self, docs):
         """
