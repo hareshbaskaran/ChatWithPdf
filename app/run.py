@@ -6,6 +6,8 @@ from services.vectordbs import FAISSVectorStore
 from utils.variables import VECTOR_DB_PATH
 
 from langchain.indexes import index, SQLRecordManager
+
+
 #### indexes in lancghain
 ########### run pdf - ingestion ###############
 def main():
@@ -27,17 +29,10 @@ def main():
     db.add_docs_to_vector_db()
     vdb = db.get_vdb()
 
-    idx = index(
-        docs,
-        record_manager,
-        vdb,
-        cleanup=None,
-        source_id_key="source"
-    )
+    idx = index(docs, record_manager, vdb, cleanup=None, source_id_key="source")
     print(idx)
-    if idx['num_skipped'] == doc_len:
+    if idx["num_skipped"] == doc_len:
         print("duplicate document")
-
 
 
 """    pdf_loader = PDFLoader(doc_path="docs/test_data/new_test.pdf")

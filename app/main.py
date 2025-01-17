@@ -1,34 +1,28 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from app.services.embeddings import HFEmbeddings
-from app.services.loaders import PDFLoader
-from app.services.chunkers import RTChunker
-from app.services.vectordbs import FAISSVectorStore
-from app.utils.variables import VECTOR_DB_PATH, SQL_MANAGER_NAMESPACE, SQLITE_DB_URL
+from app.utils.variables import SQL_MANAGER_NAMESPACE, SQLITE_DB_URL
 from utils.helpers import (
     handle_temp_dir,
     instantiate_record_manager,
     process_doc,
     get_vdb,
-    is_duplicate
+    is_duplicate,
 )
 from models.response import PDFUploadResponse
-from langchain.indexes import index, SQLRecordManager
+from langchain.indexes import index
 import os
 
-#todo: comment and black style
+# todo: comment and black style
 
 app = FastAPI()
 
 
 @app.post("/upload-pdf", response_model=PDFUploadResponse)
 async def upload_pdf(file: UploadFile = File(...)):
-
     ## Instantiate file_path / record_manager
     temp_file_path = await handle_temp_dir(file)
 
     record_manager = instantiate_record_manager(
-        db_url=SQLITE_DB_URL,
-        namespace=SQL_MANAGER_NAMESPACE
+        db_url=SQLITE_DB_URL, namespace=SQL_MANAGER_NAMESPACE
     )
 
     try:
@@ -41,15 +35,11 @@ async def upload_pdf(file: UploadFile = File(...)):
         ### add to index
 
         idx = index(
-            docs,
-            record_manager,
-            vector_store=db,
-            cleanup=None,
-            source_id_key="source"
+            docs, record_manager, vector_store=db, cleanup=None, source_id_key="source"
         )
 
         # Determine if the document is a duplicate
-        is_dup = is_duplicate(idx,docs)
+        is_dup = is_duplicate(idx, docs)
 
         ## if no dupliactes present add docs to vector_db
         if not is_dup:
@@ -57,16 +47,16 @@ async def upload_pdf(file: UploadFile = File(...)):
 
         # Return the response
         return PDFUploadResponse(
-            message="Document already uploaded" if is_duplicate else "PDF uploaded and processed successfully."
+            message="Document already uploaded"
+            if is_duplicate
+            else "PDF uploaded and processed successfully."
         )
 
+        ##todo: add display upload methods
 
     ## add extensions
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"An error occurred: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
     finally:
         # clean up temp files
