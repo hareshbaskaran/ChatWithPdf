@@ -1,7 +1,9 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
-from app.utils.variables import GOOGLE_API_KEY
 from abc import ABC, abstractmethod
+
 from langchain_core.language_models import BaseChatModel
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+from app.utils.variables import GOOGLE_API_KEY
 
 
 class BaseLLMProvider(ABC):

@@ -1,7 +1,8 @@
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
 from abc import ABC, abstractmethod
 from typing import List
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
 
 
 class BaseChunker(ABC):

@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
+from typing import List, Optional
+
 from langchain.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
-from typing import List, Optional
 
 
 class BaseLoader(ABC):

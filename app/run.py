@@ -1,23 +1,23 @@
+import json
+from typing import List
+
+from langchain.chains import LLMChain
+from langchain.document_loaders import TextLoader
+from langchain.embeddings import HuggingFaceEmbeddings, OpenAIEmbeddings
+from langchain.indexes import SQLRecordManager, index
+from langchain.llms import OpenAI
+from langchain.output_parsers import PydanticOutputParser
+from langchain.prompts import PromptTemplate
+from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain.vectorstores import FAISS, Chroma
+from langchain_core.documents import Document
+from pydantic import BaseModel
+from services.chunkers import RTChunker
 from services.embeddings import HFEmbeddings
 from services.llms import GeminiLLMProvider
 from services.loaders import PDFLoader
-from services.chunkers import RTChunker
 from services.vectordbs import FAISSVectorStore
 from utils.variables import VECTOR_DB_PATH
-import json
-from langchain.indexes import index, SQLRecordManager
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
-from langchain.llms import OpenAI
-from langchain.vectorstores import FAISS, Chroma
-from langchain_core.documents import Document
-from langchain.document_loaders import TextLoader
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.output_parsers import PydanticOutputParser
-from pydantic import BaseModel
-from langchain.retrievers.multi_query import MultiQueryRetriever
-from typing import List
-from langchain.embeddings import HuggingFaceEmbeddings
 
 
 #### indexes in lancghain

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from typing import Any
+
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 
 class BaseEmbeddings(ABC):

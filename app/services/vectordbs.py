@@ -1,11 +1,13 @@
+import os
+from abc import ABC, abstractmethod
+from typing import Any
+
+from langchain.schema import Document
 from langchain.vectorstores import FAISS, Chroma
 from langchain_core.embeddings import Embeddings
 from langchain_core.retrievers import BaseRetriever
-from langchain.schema import Document
+
 from app.utils.loggers import logger
-from abc import ABC, abstractmethod
-from typing import Any
-import os
 
 
 ### Works only for Local Storage - VectorDB Indexes ###

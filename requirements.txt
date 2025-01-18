@@ -22,3 +22,8 @@ fastapi-sessions
 langchain-chroma
 langchain-huggingface
 onnx==1.16.1
+
+
+isort
+doq
+codespell

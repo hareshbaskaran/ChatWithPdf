@@ -1,6 +1,6 @@
-from pydantic import BaseModel
 from typing import List
 
+from pydantic import BaseModel
 
 ############# Response models ##############
 
@@ -34,6 +34,10 @@ class QAResponse(BaseModel):
 
 
 class ChatResponse(BaseModel):
+    """
+    Pydantic Model for Validating chat Response linked with Source Citations
+    """
+
     response: str
     citations: list[str]
 

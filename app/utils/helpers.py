@@ -1,12 +1,14 @@
-from typing import Any
+import os
+from typing import Any, List
+
+from langchain.indexes import SQLRecordManager, index
+from langchain_core.documents import Document
+
+from app.services.chunkers import RTChunker
 from app.services.embeddings import HFEmbeddings
 from app.services.loaders import PDFLoader
-from app.services.chunkers import RTChunker
-from app.services.vectordbs import FAISSVectorStore, ChromaVectorStore
-from langchain.vectorstores import Chroma
-from app.utils.variables import VECTOR_DB_PATH, SQL_MANAGER_NAMESPACE, SQLITE_DB_URL
-from langchain.indexes import index, SQLRecordManager
-import os
+from app.services.vectordbs import ChromaVectorStore, FAISSVectorStore
+from app.utils.variables import SQL_MANAGER_NAMESPACE, SQLITE_DB_URL, VECTOR_DB_PATH
 
 
 class PDFIngest:
@@ -41,8 +43,7 @@ class PDFIngest:
         :return: Chunked document list
         """
         docs = PDFLoader.get_docs(doc_path=doc_path)
-        chunked_docs = RTChunker(docs=docs).split_docs()
-        return chunked_docs
+        return RTChunker(docs=docs).split_docs()
 
     @classmethod
     def get_vector_store(cls) -> ChromaVectorStore:
@@ -56,26 +57,37 @@ class PDFIngest:
         )
 
     @staticmethod
-    def is_duplicate(idx: index, docs: list) -> bool:
+    def process_duplicate_doc(idx: index, docs: List[Document]) -> (bool, str):
         """
         Custom logic to check if the document is a duplicate
         :param idx: The index object
         :param docs: List of documents
-        :return: Boolean indicating if the document is a duplicate
+        :return: (Boolean indicating if the document is a duplicate, Document Upload Response)
         """
         if idx["num_skipped"] == len(docs):
-            return True
-        return False
+            return (True, "Document already uploaded")
+        return (False, "PDF Uploaded and Processed Sucessfully")
 
 
 ### Retrieval Chain Methods
-## todo : add pages as additional meta data
 
 
 def parse_to_pydantic(result) -> Any:
-    sources = [
-        doc.metadata.get("source") + ",  page no : " + str(doc.metadata.get("page"))
-        for doc in result["source_documents"]
-    ]
-    parsed_result = {"response": result["result"], "citations": list(set(sources))}
-    return parsed_result
+    """
+    Parse LLM response to a Pydantic Object
+    :param result:
+    :return:
+    """
+    return {
+        "response": result["result"],
+        "citations": list(
+            set(
+                [
+                    doc.metadata.get("source")
+                    + ",  page no : "
+                    + str(doc.metadata.get("page"))
+                    for doc in result["source_documents"]
+                ]
+            )
+        ),
+    }

@@ -1,41 +1,53 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+import os
+from typing import List
+
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from langchain.chains import LLMChain, RetrievalQA
+from langchain.indexes import index
+from langchain.prompts import PromptTemplate
+from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain.schema import Document
+from langchain_core.output_parsers import PydanticOutputParser
 from services.llms import GeminiLLMProvider
 from utils.helpers import PDFIngest, parse_to_pydantic
-from langchain.chains import RetrievalQA
-from app.utils.models import PDFUploadResponse, ChatResponse
-from langchain.indexes import index
 from utils.prompts import qa_prompt_template, response_prompt_template
-from langchain.chains import LLMChain
-from langchain_core.output_parsers import PydanticOutputParser
-from langchain.retrievers.multi_query import MultiQueryRetriever
-from fastapi import Form
-from langchain.prompts import PromptTemplate
-from langchain.schema import Document
-from typing import List
-import os
 
+from app.utils.models import ChatResponse, PDFUploadResponse
+
+# Initialize FastAPI application
 app = FastAPI()
+
+# Initialize PDF ingest service
 ingest = PDFIngest()
 
 
-@app.post("/")
-def health_check():
-    return {"status": "OK"}
+@app.get("/")
+async def root():
+    """
+    Root endpoint to check API status.
+    """
+    return {"status": "API Running"}
 
 
 @app.post("/upload-pdf", response_model=PDFUploadResponse)
 async def upload_pdf(file: UploadFile = File(...)):
-    # create virtual temp-file path
+    """
+    Endpoint to upload a PDF document and process it.
+
+    :param file: Uploaded PDF file.
+    :return: Response indicating whether the upload and processing were successful.
+    """
+    # Create a virtual temporary file path
     temp_file_path = await ingest.handle_temp_dir(file)
 
     try:
-        # Process the PDF
+        # Step 1: Process the PDF file
         docs = ingest.process_doc(doc_path=temp_file_path)
 
-        # get vector database
+        # Step 2: Retrieve the vector database
         vector_store = ingest.get_vector_store()
 
-        ### add to index
+        # Step 3: Add processed documents to the index
         idx = index(
             docs_source=docs,
             record_manager=ingest.instantiate_record_manager(),
@@ -44,26 +56,22 @@ async def upload_pdf(file: UploadFile = File(...)):
             source_id_key="source",
         )
 
-        # Determine if the document is a duplicate
-        is_dup = ingest.is_duplicate(idx, docs)
+        # Step 4: Handle duplicates in a modularized way
+        is_duplicate, response = ingest.process_duplicate_doc(idx, docs)
 
-        ## if no dupliactes present add docs to vector_db
-        if not is_dup:
+        # Step 5: If no duplicates are found, add documents to the vector store
+        if not is_duplicate:
             vector_store.add_docs_to_vector_db(docs=docs)
 
-        # Return the response
-        return PDFUploadResponse(
-            message="Document already uploaded"
-            if ingest.is_duplicate
-            else "PDF uploaded and processed successfully."
-        )
+        # Return the appropriate response
+        return PDFUploadResponse(message=response)
 
-    ##add exceptions
     except Exception as e:
+        # Handle exceptions and return error details
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
     finally:
-        # clean up temp files
+        # Clean up temporary files
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
 
@@ -71,88 +79,65 @@ async def upload_pdf(file: UploadFile = File(...)):
 @app.post("/chat-with-pdf")
 async def chat_with_pdf(query: str = Form(...)):
     """
-    Chat With Vector Store retrievers
-    Implemented QARetrieval Chain to translate Similarity documents
-    :to: Pydantic Output of LLM Response
+    Endpoint to interact with the vector store using a query and retrieve relevant documents.
 
-    :param query:
-    :return: {
-    response : LLM Response (str),
-    citations : Source Documents used for LLM Response(List[str])
-    }
+    :param query: User query string.
+    :return: Parsed response containing LLM results and citations.
     """
-
-    # instantiate LLM / Vector Stores
+    # Step 1: Initialize LLM and vector store
     llm = GeminiLLMProvider.get_llm()
     vector_store = ingest.get_vector_store()
 
-    # Construct QARetrieval Chain
+    # Step 2: Construct a QA Retrieval Chain
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=vector_store.get_vdb_as_retriever(),
         return_source_documents=True,
     )
 
-    # invoke results and source details
+    # Step 3: Invoke results and retrieve source details
     result = qa_chain({"query": query})
 
-    # Parse to Pydantic JSON object
+    # Step 4: Parse results into a Pydantic JSON object
     return parse_to_pydantic(result)
 
 
 @app.post("/chat-with-pdf:latest")
-async def chat_with_pdf(query: str = Form(...)):
+async def chat_with_pdf_latest(query: str = Form(...)):
     """
-    Chat With Vector Store retrievers
-    Implemented QA Retrieval Chain to translate Similarity documents
-    :to: Pydantic Output of LLM Response
+    Latest endpoint to interact with the vector store and retrieve results.
 
-    :param query: User query
-    :return: {
-        response: LLM Response (str),
-        citations: Source Documents used for LLM Response (List[str])
-    }
+    :param query: User query string.
+    :return: Parsed response containing LLM results and citations.
     """
-
-    # Step 1: Instantiate LLM / VectorStore / Retriever
+    # Step 1: Initialize LLM and vector store
     llm = GeminiLLMProvider.get_llm()
     vector_store = ingest.get_vector_store()
-    retriever = vector_store.get_vdb_as_retriever()
 
-    # Step 2 : Invoke Retriever and LLM Prompts
-    ## MultiQueryRetriever Prompt -> to return List[Documents]
-    prompt = PromptTemplate(
+    # Step 2: Define prompts for document retrieval and response generation
+    retriever_prompt = PromptTemplate(
         template=qa_prompt_template, input_variables=["query", "documents"]
     )
-
-    ## LLMChain Prompt -> to return Query response in Pydantic Model
     response_prompt = PromptTemplate(
         template=response_prompt_template, input_variables=["query", "documents"]
     )
 
-    # Step 3: Retrieve documents from Vector Store using MultiQueryRetriever
-
-    question = (
-        query  ## todo : change the question for relevant document search in future
-    )
+    # Step 3: Use MultiQueryRetriever to fetch relevant documents
     retrieved_docs: List[Document] = MultiQueryRetriever.from_llm(
         llm=llm,
-        retriever=retriever
-        # prompt=prompt
-    ).get_relevant_documents(question)
+        retriever=vector_store.get_vdb_as_retriever(),
+    ).get_relevant_documents(query)
 
-    # Step 4 : Translate Retrieved Documents to Text -> Pass to LLM Prompt Template
-
-    ## GPT Version -> convert to proper text translation
+    # Step 4: Format retrieved documents into text
     documents_text = "\n\n".join(
         f"Source: {doc.metadata.get('source', 'Unknown')}\n{doc.page_content}"
         for doc in retrieved_docs
-    )  ## todo : change documents to text format -> create updated format helpers
+    )
 
-    # Step 4: Call OuptutParser by a Pydantic Object -> ChatResponse
+    # Step 5: Parse the output into a Pydantic model
     output_parser = PydanticOutputParser(pydantic_object=ChatResponse)
 
-    # Step 5: Run the LLM chain with the refined prompt
+    # Step 6: Use LLM chain with the refined prompt and return the response
     chain = LLMChain(llm=llm, prompt=response_prompt, output_parser=output_parser)
     return chain.run({"query": query, "documents": documents_text})
 
@@ -160,4 +145,5 @@ async def chat_with_pdf(query: str = Form(...)):
 if __name__ == "__main__":
     import uvicorn
 
+    # Run the FastAPI application
     uvicorn.run(app, host="127.0.0.1", port=8000)
