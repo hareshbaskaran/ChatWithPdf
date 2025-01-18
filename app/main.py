@@ -1,9 +1,17 @@
-from fastapi import FastAPI, Form, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from services.llms import GeminiLLMProvider
 from utils.helpers import PDFIngest, parse_to_pydantic
 from langchain.chains import RetrievalQA
-from app.utils.models import PDFUploadResponse
+from app.utils.models import PDFUploadResponse, ChatResponse
 from langchain.indexes import index
+from utils.prompts import qa_prompt_template, response_prompt_template
+from langchain.chains import LLMChain
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain.retrievers.multi_query import MultiQueryRetriever
+from fastapi import Form
+from langchain.prompts import PromptTemplate
+from langchain.schema import Document
+from typing import List
 import os
 
 app = FastAPI()
@@ -78,7 +86,7 @@ async def chat_with_pdf(query: str = Form(...)):
     llm = GeminiLLMProvider.get_llm()
     vector_store = ingest.get_vector_store()
 
-    # Construcct QARetrieval Chain
+    # Construct QARetrieval Chain
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=vector_store.get_vdb_as_retriever(),
@@ -90,6 +98,70 @@ async def chat_with_pdf(query: str = Form(...)):
 
     # Parse to Pydantic JSON object
     return parse_to_pydantic(result)
+
+
+@app.post("/chat-with-pdf:latest")
+async def chat_with_pdf(query: str = Form(...)):
+    """
+    Chat With Vector Store retrievers
+    Implemented QA Retrieval Chain to translate Similarity documents
+    :to: Pydantic Output of LLM Response
+
+    :param query: User query
+    :return: {
+        response: LLM Response (str),
+        citations: Source Documents used for LLM Response (List[str])
+    }
+    """
+
+    # Step 1: Instantiate LLM / VectorStore / Retriever
+    llm = GeminiLLMProvider.get_llm()
+    vector_store = ingest.get_vector_store()
+    retriever = vector_store.get_vdb_as_retriever()
+
+    # Step 2 : Invoke Retriever and LLM Prompts
+    ## MultiQueryRetriever Prompt -> to return List[Documents]
+    prompt = PromptTemplate(
+        template=qa_prompt_template, input_variables=["query", "documents"]
+    )
+
+    ## LLMChain Prompt -> to return Query response in Pydantic Model
+    response_prompt = PromptTemplate(
+        template=response_prompt_template, input_variables=["query", "documents"]
+    )
+
+    # Step 3: Retrieve documents from Vector Store using MultiQueryRetriever
+
+    question = query ## todo : change the question for relevant document search in future
+    retrieved_docs: List[Document] = MultiQueryRetriever.from_llm(
+        llm=llm,
+        retriever=retriever
+        # prompt=prompt
+    ).get_relevant_documents(question)
+
+
+    # Step 4 : Translate Retrieved Documents to Text -> Pass to LLM Prompt Template
+
+    ## GPT Version -> convert to proper text translation
+    documents_text = "\n\n".join(
+        f"Source: {doc.metadata.get('source', 'Unknown')}\n{doc.page_content}"
+        for doc in retrieved_docs
+    ) ## todo : change documents to text format -> create updated format helpers
+
+
+    # Step 4: Call OuptutParser by a Pydantic Object -> ChatResponse
+    output_parser = PydanticOutputParser(pydantic_object=ChatResponse)
+
+
+    # Step 5: Run the LLM chain with the refined prompt
+    chain = LLMChain(
+        llm=llm,
+        prompt=response_prompt,
+        output_parser=output_parser
+
+    )
+    return chain.run({"query": query, "documents": documents_text})
+
 
 
 if __name__ == "__main__":

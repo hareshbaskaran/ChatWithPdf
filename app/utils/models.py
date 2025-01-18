@@ -31,3 +31,14 @@ class QAResponse(BaseModel):
 
     response: str
     citations: List[str]
+
+
+class ChatResponse(BaseModel):
+    response: str
+    citations: list[str]
+
+
+class ChatResponseTest(BaseModel):
+    response: str
+    citation: str
+

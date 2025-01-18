@@ -2,7 +2,8 @@ from typing import Any
 from app.services.embeddings import HFEmbeddings
 from app.services.loaders import PDFLoader
 from app.services.chunkers import RTChunker
-from app.services.vectordbs import FAISSVectorStore
+from app.services.vectordbs import FAISSVectorStore, ChromaVectorStore
+from langchain.vectorstores import Chroma
 from app.utils.variables import VECTOR_DB_PATH, SQL_MANAGER_NAMESPACE, SQLITE_DB_URL
 from langchain.indexes import index, SQLRecordManager
 import os
@@ -39,17 +40,17 @@ class PDFIngest:
         :param doc_path: The path to the PDF file
         :return: Chunked document list
         """
-        docs = PDFLoader(doc_path).get_docs()
+        docs = PDFLoader.get_docs(doc_path=doc_path)
         chunked_docs = RTChunker(docs=docs).split_docs()
         return chunked_docs
 
     @classmethod
-    def get_vector_store(cls) -> FAISSVectorStore:
+    def get_vector_store(cls) -> ChromaVectorStore:
         """
         Returns a FAISSVectorStore object with embeddings
         :return: FAISSVectorStore instance
         """
-        return FAISSVectorStore(
+        return ChromaVectorStore(
             embeddings=HFEmbeddings.get_embeddings(),
             vector_db_path=VECTOR_DB_PATH,
         )
