@@ -1,0 +1,54 @@
+problem :
+
+
+User Query -> Docs From VectorDB using that Query -> Prompt which goes like
+
+"Answer the following query using only the docs given:
+Query: User Query
+
+Doc 1:
+aasasdsasa
+
+Doc 2:
+asdasdada
+
+Doc 3:
+paisdjaosid
+
+....
+....
+...." (You dont tell the llm the pdf names. Only you keep a map of the pdf names associated with each doc number.
+
+-> Pydantic Parser with two keys: answer(answer to the question), citations: List[int] Document IDs
+-> Map the doc ids back to doc names and give the answer with doc names
+
+
+Architecture design :
+
+
+## 1. User Provides Prompt :
+   :types :-
+   - Specify Generally :
+        - Generalized Question - entirely from DB
+            - Args : {
+            question : str
+            }
+
+        - Document Specific / Page Number Specific Question
+            - Specific Document from DB -> (summarize / provide insights from Document(s) / specific Page(s)
+
+        ### attributed to be taken from
+        - DB Query -> Formats query for similarity search ## do few shot prompting for rephrasing texts
+        - LLM Query -> Formats query for LLM ## take meta data information out and formats only query needed
+
+        ## take from LLM / From Retrieval Chain
+        - Citations -> takes citation details from metadata of documents retrieved
+            - source
+            - page
+
+        - Top_k -> document retrieval limit ## if given by user need to extract the same
+
+
+   ### Optional paramters of PDF
+
+

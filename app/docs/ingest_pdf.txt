@@ -1,0 +1,59 @@
+######### routes/ingest-pdf ######################
+
+
+parameters :
+
+- PDFFile - get PDF from API
+     - get_doc -> return List[Documents]
+
+
+- LLMProvider - return GeminiLLMProvider() | (depnds_on : None)
+
+    - get_llm() -> returns BaseLLMProvider # instantiates LLM
+        - provider_name : str
+        - model: str
+        - api_key : end.dotenv() -> get api key from env file
+        - temperature
+        - ... (Optional)
+
+    - get_response() -> return PydanticBaseModel # Return LLM response into Pydantic Object
+        - ...
+
+
+- Embedding - return HuggingFaceEmbeddings() | (depends_on : None)
+
+    - get_embeddings() -> returns BaseEmbeddingModel # instantiates embedding model
+        - /
+
+    - **get_chunk_embeddings() -> returns BaseEmbeddingModel # instantiates seperate embedding model for SemanticChunking
+        - ...
+
+
+- Chunker - return List[Documents] | (depends_on : PDFFile, **Embedding)
+
+    - split_docs() -> returns List[Documents]
+        - pdf_docs : List[docs]
+        - embedding_model : BaseEmbeddingModel
+
+- VectorDB - returns a retriever | (depends_on : Embedding,Chunker) :
+
+    - add_docs -> VectorDBType
+        - docs : List[Document]
+        - embed_model : BaseEmbeddingModel
+
+    - get_retriever -> VectorStoreRetriever
+        - self.add_docs() -> convert as retriever
+
+
+run :
+
+## step 1 : get_doc
+     -> loader = PyPDFLoader(csv_path)
+     -> loader.load()
+## step 2 : split_docs
+    -> splitter = CharacterTextSplit(chunk_size = 1000, chunk_overlap=0)
+    -> docs = splitter.split_documents(get_doc())
+## step 3 : get_embeddings
+    -> embeddings = HuggingFaceEmbedings()
+## Step 4 : add_docs_to_vdb
+    -> FAISS.from_documents(docs,embeddings)
