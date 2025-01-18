@@ -1,0 +1,8 @@
+services:
+  app:
+    build: .
+    image: "hareshdev0208/chatwithpdf:latest"
+    ports:
+      - "8000:8000"
+
+

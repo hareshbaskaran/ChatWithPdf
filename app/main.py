@@ -14,18 +14,13 @@ from utils.prompts import qa_prompt_template, response_prompt_template
 
 from app.utils.models import ChatResponse, PDFUploadResponse
 
-# Initialize FastAPI application
+# Initialize FastAPI application / PDFIngest Service
 app = FastAPI()
-
-# Initialize PDF ingest service
 ingest = PDFIngest()
 
 
 @app.get("/")
 async def root():
-    """
-    Root endpoint to check API status.
-    """
     return {"status": "API Running"}
 
 
