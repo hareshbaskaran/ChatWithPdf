@@ -132,13 +132,14 @@ async def chat_with_pdf(query: str = Form(...)):
 
     # Step 3: Retrieve documents from Vector Store using MultiQueryRetriever
 
-    question = query ## todo : change the question for relevant document search in future
+    question = (
+        query  ## todo : change the question for relevant document search in future
+    )
     retrieved_docs: List[Document] = MultiQueryRetriever.from_llm(
         llm=llm,
         retriever=retriever
         # prompt=prompt
     ).get_relevant_documents(question)
-
 
     # Step 4 : Translate Retrieved Documents to Text -> Pass to LLM Prompt Template
 
@@ -146,22 +147,14 @@ async def chat_with_pdf(query: str = Form(...)):
     documents_text = "\n\n".join(
         f"Source: {doc.metadata.get('source', 'Unknown')}\n{doc.page_content}"
         for doc in retrieved_docs
-    ) ## todo : change documents to text format -> create updated format helpers
-
+    )  ## todo : change documents to text format -> create updated format helpers
 
     # Step 4: Call OuptutParser by a Pydantic Object -> ChatResponse
     output_parser = PydanticOutputParser(pydantic_object=ChatResponse)
 
-
     # Step 5: Run the LLM chain with the refined prompt
-    chain = LLMChain(
-        llm=llm,
-        prompt=response_prompt,
-        output_parser=output_parser
-
-    )
+    chain = LLMChain(llm=llm, prompt=response_prompt, output_parser=output_parser)
     return chain.run({"query": query, "documents": documents_text})
-
 
 
 if __name__ == "__main__":

@@ -41,4 +41,3 @@ class ChatResponse(BaseModel):
 class ChatResponseTest(BaseModel):
     response: str
     citation: str
-

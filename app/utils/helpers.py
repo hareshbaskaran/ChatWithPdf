@@ -73,8 +73,9 @@ class PDFIngest:
 
 
 def parse_to_pydantic(result) -> Any:
-    sources = [doc.metadata.get("source") + ",  page no : " + str(doc.metadata.get("page")) for doc in result["source_documents"]]
+    sources = [
+        doc.metadata.get("source") + ",  page no : " + str(doc.metadata.get("page"))
+        for doc in result["source_documents"]
+    ]
     parsed_result = {"response": result["result"], "citations": list(set(sources))}
     return parsed_result
-
-

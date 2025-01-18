@@ -8,7 +8,6 @@ from typing import Any
 import os
 
 
-
 ### Works only for Local Storage - VectorDB Indexes ###
 class BaseVectorStore(ABC):
     def __init__(self, embeddings: Embeddings, vector_db_path: str):
@@ -37,7 +36,6 @@ class BaseVectorStore(ABC):
         pass
 
 
-
 class FAISSVectorStore(BaseVectorStore):
     def __init__(self, embeddings: Embeddings, vector_db_path: str):
         """
@@ -54,7 +52,9 @@ class FAISSVectorStore(BaseVectorStore):
         :return: None
         """
         if not self.vector_db_exists():
-            logger.debug("Vector database not found. Initializing with a dummy document.")
+            logger.debug(
+                "Vector database not found. Initializing with a dummy document."
+            )
             self.initialize_with_dummy_document()
 
     def vector_db_exists(self) -> bool:
@@ -69,10 +69,16 @@ class FAISSVectorStore(BaseVectorStore):
         Initialize the vector database with a dummy document.
         :return: None
         """
-        dummy_doc = [Document(page_content="This is a dummy document to initialize the vector store.")]
+        dummy_doc = [
+            Document(
+                page_content="This is a dummy document to initialize the vector store."
+            )
+        ]
         faiss_db = FAISS.from_documents(documents=dummy_doc, embedding=self.embeddings)
         faiss_db.save_local(self.vector_db_path)
-        logger.debug(f"Vector database initialized at {self.vector_db_path} with a dummy document.")
+        logger.debug(
+            f"Vector database initialized at {self.vector_db_path} with a dummy document."
+        )
 
     def get_vdb(self) -> FAISS:
         """
@@ -87,7 +93,9 @@ class FAISSVectorStore(BaseVectorStore):
                 allow_dangerous_deserialization=True,
             )
         except Exception as e:
-            logger.warning(f"Error loading vector database: {e}. Reinitializing with a dummy document.")
+            logger.warning(
+                f"Error loading vector database: {e}. Reinitializing with a dummy document."
+            )
             self.initialize_with_dummy_document()
             return FAISS.load_local(
                 folder_path=self.vector_db_path,
@@ -114,8 +122,14 @@ class FAISSVectorStore(BaseVectorStore):
         """
         return self.get_vdb().as_retriever()
 
+
 class ChromaVectorStore:
-    def __init__(self, embeddings: Embeddings, vector_db_path: str, collection_name: str = "default_collection"):
+    def __init__(
+        self,
+        embeddings: Embeddings,
+        vector_db_path: str,
+        collection_name: str = "default_collection",
+    ):
         """
         Initialize the ChromaVectorStore class.
         :param embeddings: Embedding model to be used for document embeddings.
@@ -134,7 +148,9 @@ class ChromaVectorStore:
         Ensure the Chroma database exists, otherwise create it with a dummy document.
         """
         if not self.vector_db_exists():
-            logger.debug("Chroma database not found. Initializing with a dummy document.")
+            logger.debug(
+                "Chroma database not found. Initializing with a dummy document."
+            )
             self.initialize_with_dummy_document()
 
     def vector_db_exists(self) -> bool:
@@ -149,7 +165,11 @@ class ChromaVectorStore:
         """
         Initialize the Chroma database with a dummy document.
         """
-        dummy_doc = [Document(page_content="This is a dummy document to initialize the vector store.")]
+        dummy_doc = [
+            Document(
+                page_content="This is a dummy document to initialize the vector store."
+            )
+        ]
         chroma_db = Chroma.from_documents(
             documents=dummy_doc,
             embedding=self.embeddings,
@@ -157,7 +177,9 @@ class ChromaVectorStore:
             collection_name=self.collection_name,
         )
         chroma_db.persist()
-        logger.debug(f"Chroma database initialized at {self.vector_db_path} with a dummy document.")
+        logger.debug(
+            f"Chroma database initialized at {self.vector_db_path} with a dummy document."
+        )
 
     def get_vdb(self) -> Chroma:
         """
@@ -171,7 +193,9 @@ class ChromaVectorStore:
                 collection_name=self.collection_name,
             )
         except Exception as e:
-            logger.warning(f"Error loading Chroma database: {e}. Reinitializing with a dummy document.")
+            logger.warning(
+                f"Error loading Chroma database: {e}. Reinitializing with a dummy document."
+            )
             self.initialize_with_dummy_document()
             return Chroma(
                 embedding_function=self.embeddings,
