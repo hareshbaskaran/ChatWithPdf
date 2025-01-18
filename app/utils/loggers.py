@@ -1,6 +1,3 @@
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import FAISS
+import logging
 
-
-from ..services.embeddings import HFEmbeddings
-#from ..docs.out_data
+logger = logging.getLogger(__name__)
