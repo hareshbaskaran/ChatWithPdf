@@ -91,3 +91,18 @@ def parse_to_pydantic(result) -> Any:
             )
         ),
     }
+
+def convert_docs_to_text(docs: List[Document]):
+    """
+    Convert List[Documents] to Text Format
+    -> Parse Document Content, MetaData to LLM
+
+    :param docs:
+    :return: str
+    """
+
+    return "\n\n".join(
+        f"Source: {doc.metadata.get('source', 'Unknown')}\n{doc.page_content}"
+        for doc in docs
+    )
+

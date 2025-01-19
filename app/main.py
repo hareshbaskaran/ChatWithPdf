@@ -4,13 +4,12 @@ from typing import List
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from langchain.chains import LLMChain, RetrievalQA
 from langchain.indexes import index
-from langchain.prompts import PromptTemplate
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.schema import Document
 from langchain_core.output_parsers import PydanticOutputParser
 from services.llms import GeminiLLMProvider
-from utils.helpers import PDFIngest, parse_to_pydantic
-from utils.prompts import qa_prompt_template, response_prompt_template
+from utils.helpers import PDFIngest, parse_to_pydantic, convert_docs_to_text
+from utils.prompts import response_prompt
 
 from app.utils.models import ChatResponse, PDFUploadResponse
 
@@ -80,65 +79,61 @@ async def chat_with_pdf(query: str = Form(...)):
     :return: Parsed response containing LLM results and citations.
     """
     # Step 1: Initialize LLM and vector store
-    llm = GeminiLLMProvider.get_llm()
-    vector_store = ingest.get_vector_store()
+    try:
+        llm = GeminiLLMProvider.get_llm()
+        vector_store = ingest.get_vector_store()
 
-    # Step 2: Construct a QA Retrieval Chain
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        retriever=vector_store.get_vdb_as_retriever(),
-        return_source_documents=True,
-    )
+        # Step 2: Construct a QA Retrieval Chain
+        qa_chain = RetrievalQA.from_chain_type(
+            llm=llm,
+            retriever=vector_store.get_vdb_as_retriever(),
+            return_source_documents=True,
+        )
 
-    # Step 3: Invoke results and retrieve source details
-    result = qa_chain({"query": query})
+        # Step 3: Invoke results and retrieve source details
+        result = qa_chain({"query": query})
 
-    # Step 4: Parse results into a Pydantic JSON object
-    return parse_to_pydantic(result)
+        # Step 4: Parse results into a Pydantic JSON object
+        return parse_to_pydantic(result)
+
+    except Exception as e:
+        # Handle exceptions and return error details
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
 
 
 @app.post("/chat-with-pdf:latest")
 async def chat_with_pdf_latest(query: str = Form(...)):
     """
     Latest endpoint to interact with the vector store and retrieve results.
+    ###todo : generate specific templates for DB retriever Query from LLM-> question
 
     :param query: User query string.
     :return: Parsed response containing LLM results and citations.
     """
-    # Step 1: Initialize LLM and vector store
-    llm = GeminiLLMProvider.get_llm()
-    vector_store = ingest.get_vector_store()
+    try:
+        # Step 1: Initialize LLM and vector store
+        llm = GeminiLLMProvider.get_llm()
+        vector_store = ingest.get_vector_store()
 
-    # Step 2: Define prompts for document retrieval and response generation
-    response_prompt = PromptTemplate(
-        template=response_prompt_template, input_variables=["query", "documents"]
-    )
+        # Step 2: Use MultiQueryRetriever to fetch relevant documents
+        retrieved_docs: List[Document] = MultiQueryRetriever.from_llm(
+            llm=llm,
+            retriever=vector_store.get_vdb_as_retriever(),
+        ).get_relevant_documents(query)
 
-    # Step 3: Use MultiQueryRetriever to fetch relevant documents
-    question = query
-    # todo : generate specific templates for DB retriever Query -> question
+        # Step 3: Use LLM chain with the refined prompt and return the response
+        chain = LLMChain(
+            llm=llm,
+            prompt=response_prompt,
+            output_parser= PydanticOutputParser(pydantic_object=ChatResponse))
 
-    retrieved_docs: List[Document] = MultiQueryRetriever.from_llm(
-        llm=llm,
-        retriever=vector_store.get_vdb_as_retriever(),
-        #prompt=retriever_prompt
-    ).get_relevant_documents(question)
+        return chain.run({"query": query, "documents":convert_docs_to_text(retrieved_docs)})
 
-    # Step 4: Format retrieved documents into text
-    """documents_text = "\n\n".join(
-        f"Source: {doc.metadata.get('source', 'Unknown')}\n{doc.page_content}"
-        for doc in retrieved_docs
-    )"""
+    except Exception as e:
+        # Handle exceptions and return error details
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
-    docs_text = "\n\n".join(
-        f"source: {doc.metadata['source']} "for doc in retrieved_docs)
-
-    # Step 5: Parse the output into a Pydantic model
-    output_parser = PydanticOutputParser(pydantic_object=ChatResponse)
-
-    # Step 6: Use LLM chain with the refined prompt and return the response
-    chain = LLMChain(llm=llm, prompt=response_prompt, output_parser=output_parser)
-    return chain.run({"query": query, "documents": docs_text})
 
 
 if __name__ == "__main__":

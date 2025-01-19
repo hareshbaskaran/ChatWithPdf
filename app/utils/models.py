@@ -1,6 +1,7 @@
 from typing import List
 
 from pydantic import BaseModel, field_validator
+
 ############# Response models ##############
 
 
@@ -42,6 +43,6 @@ class ChatResponse(BaseModel):
     citations: list[str]
 
     @classmethod
-    @field_validator("citations",mode="after")
-    def union_citations(cls,citations):
+    @field_validator("citations", mode="after")
+    def union_citations(cls, citations):
         return List[set(citations)]
