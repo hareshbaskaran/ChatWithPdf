@@ -8,7 +8,7 @@ from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.schema import Document
 from langchain_core.output_parsers import PydanticOutputParser
 from services.llms import GeminiLLMProvider
-from utils.helpers import PDFIngest, parse_to_pydantic, convert_docs_to_text
+from utils.helpers import PDFIngest, convert_docs_to_text, parse_to_pydantic
 from utils.prompts import response_prompt
 
 from app.utils.models import ChatResponse, PDFUploadResponse
@@ -101,7 +101,6 @@ async def chat_with_pdf(query: str = Form(...)):
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-
 @app.post("/chat-with-pdf:latest")
 async def chat_with_pdf_latest(query: str = Form(...)):
     """
@@ -126,14 +125,16 @@ async def chat_with_pdf_latest(query: str = Form(...)):
         chain = LLMChain(
             llm=llm,
             prompt=response_prompt,
-            output_parser= PydanticOutputParser(pydantic_object=ChatResponse))
+            output_parser=PydanticOutputParser(pydantic_object=ChatResponse),
+        )
 
-        return chain.run({"query": query, "documents":convert_docs_to_text(retrieved_docs)})
+        return chain.run(
+            {"query": query, "documents": convert_docs_to_text(retrieved_docs)}
+        )
 
     except Exception as e:
         # Handle exceptions and return error details
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-
 
 
 if __name__ == "__main__":

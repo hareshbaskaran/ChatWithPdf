@@ -1,4 +1,8 @@
-from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate,PromptTemplate
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    FewShotChatMessagePromptTemplate,
+    PromptTemplate,
+)
 
 ############### LLM Prompt Templates ######################
 
@@ -28,5 +32,5 @@ response_prompt_template = """
 ######## LLM Prompts ####################
 
 response_prompt = PromptTemplate(
-        template=response_prompt_template, input_variables=["query", "documents"]
-    )
+    template=response_prompt_template, input_variables=["query", "documents"]
+)
