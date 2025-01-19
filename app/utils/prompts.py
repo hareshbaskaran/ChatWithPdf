@@ -1,16 +1,12 @@
 ############### LLM Prompts ######################
 
-qa_prompt_template = """
-    Answer the following query using only the documents given:
-
-    Query: {query}
-
-    {documents}
-
-    Provide your response in the following format:
-    - Answer: <answer>
-    - Citations: [document IDs] 
-    """
+qa_prompt_template = """You are an AI language model assistant. Your task is 
+    to generate 5 different versions of the given user 
+    question to retrieve relevant documents from a vector  database. 
+    By generating multiple perspectives on the user question, 
+    your goal is to help the user overcome some of the limitations 
+    of distance-based similarity search. Provide these alternative 
+    questions separated by newlines. Original question: {question}"""
 ## todo: change qa_prompt_template for Multi Query Template
 
 response_prompt_template = """
@@ -20,10 +16,10 @@ response_prompt_template = """
         From the following documents:
         {documents}
 
-        Provide the necessary response and strictly cite only the used sources. 
+        Provide the necessary response and strictly cite only the used sources and unique document source names. 
         The output must be in the following JSON format:
         {{
             "response": "Your generated response here",
-            "citations": ["Source 1", "Source 2", ...]
+            "citations": Union["Source 1", "Source 2", ...]
         }}
         """

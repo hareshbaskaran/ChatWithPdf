@@ -111,17 +111,21 @@ async def chat_with_pdf_latest(query: str = Form(...)):
 
     # Step 2: Define prompts for document retrieval and response generation
     retriever_prompt = PromptTemplate(
-        template=qa_prompt_template, input_variables=["query", "documents"]
+        template=qa_prompt_template, input_variables=["question"]
     )
     response_prompt = PromptTemplate(
         template=response_prompt_template, input_variables=["query", "documents"]
     )
 
     # Step 3: Use MultiQueryRetriever to fetch relevant documents
+    question = query
+    # todo : generate specific templates for DB retriever Query -> question
+
     retrieved_docs: List[Document] = MultiQueryRetriever.from_llm(
         llm=llm,
         retriever=vector_store.get_vdb_as_retriever(),
-    ).get_relevant_documents(query)
+        #prompt=retriever_prompt
+    ).get_relevant_documents(question)
 
     # Step 4: Format retrieved documents into text
     documents_text = "\n\n".join(

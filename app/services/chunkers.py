@@ -25,7 +25,8 @@ class RTChunker(BaseChunker):
     def split_docs(self) -> List[Document]:
         """
         This method should be implemented as a Recursive Character Text Splitter
-        :param docs:
+
+        :param List[Document]:
         :return: Split Documents into Chunks
         """
         if not self.docs:
