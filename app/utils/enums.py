@@ -7,36 +7,20 @@ from app.services.vectordbs import ChromaVectorStore, FAISSVectorStore
 
 
 class LLMModels(Enum):
+    """LLM Model Providers"""
+
     GEMINI = GeminiLLMProvider
 
 
 class VectorStores(Enum):
+    """Vector Store Providers"""
+
     CHROMA = ChromaVectorStore
     FAISS = FAISSVectorStore
 
 
 class Embeddings(Enum):
+    """Embedding Model Providers"""
+
     HUGGINGFACE = HFEmbeddings
 
-
-settings = {
-    "LLM": LLMModels.GEMINI,
-    "VECTOR_STORE": VectorStores.CHROMA,
-    "EMBEDDINGS": Embeddings.HUGGINGFACE,
-}
-
-"""## todo : add more modularization -> hook with config file / .env file
-provider_store = {
-    ### LLM MODELS 
-    "GEMINI" : LLMModels.GEMINI,
-    "OPENAI" : None,
-    
-    ### Vector Stores
-    "CHROMA" : VectorStores.CHROMA,
-    "FAISS" : VectorStores.FAISS,
-    
-    ### Embeddings 
-    "HUGGINGFACE" : Embeddings.HUGGINGFACE
-}
-
-## VectorStores object is not callable error """

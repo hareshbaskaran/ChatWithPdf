@@ -8,7 +8,8 @@ from app.services.chunkers import RTChunker
 from app.services.embeddings import HFEmbeddings
 from app.services.loaders import PDFLoader
 from app.services.vectordbs import ChromaVectorStore, FAISSVectorStore
-from app.utils.variables import SQL_MANAGER_NAMESPACE, SQLITE_DB_URL, VECTOR_DB_PATH
+from app.utils.variables import (SQL_MANAGER_NAMESPACE, SQLITE_DB_URL,
+                                 VECTOR_DB_PATH)
 
 
 class ChatService:

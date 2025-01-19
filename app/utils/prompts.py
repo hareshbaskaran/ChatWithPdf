@@ -1,8 +1,6 @@
-from langchain_core.prompts import (
-    ChatPromptTemplate,
-    FewShotChatMessagePromptTemplate,
-    PromptTemplate,
-)
+from langchain_core.prompts import (ChatPromptTemplate,
+                                    FewShotChatMessagePromptTemplate,
+                                    PromptTemplate)
 
 ############### LLM Prompt Templates ######################
 

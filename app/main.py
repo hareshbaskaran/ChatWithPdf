@@ -8,12 +8,12 @@ from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.schema import Document
 from langchain_core.output_parsers import PydanticOutputParser
 from services.llms import GeminiLLMProvider
-from utils.enums import settings
 from utils.helpers import ChatService, convert_docs_to_text, parse_to_pydantic
 from utils.prompts import response_prompt
 
-from app.utils.models import ChatResponse, PDFUploadResponse
 from app.utils.loggers import logger
+from app.utils.models import ChatResponse, PDFUploadResponse
+from settings import settings
 
 app = FastAPI()
 
@@ -89,7 +89,7 @@ async def chat_with_pdf(query: str = Form(...)):
 
 @app.post("/chat-with-pdf:latest")
 async def chat_with_pdf_latest(query: str = Form(...)):
-    """ Updated Endpoint to Retrieve Relevant Documents and Process User Query
+    """Updated Endpoint to Retrieve Relevant Documents and Process User Query
     version_fix -> Retrieve Unique Document Citation from LLM
     :param query:
     :return: LLM Response
