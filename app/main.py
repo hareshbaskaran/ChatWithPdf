@@ -7,7 +7,7 @@ from langchain.indexes import index
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.schema import Document
 from langchain_core.output_parsers import PydanticOutputParser
-from services.llms import GeminiLLMProvider
+from services.llms import GeminiLLMProvider ################# GeminiLLMProvider ##########################
 from utils.helpers import PDFIngest, convert_docs_to_text, parse_to_pydantic
 from utils.prompts import response_prompt
 

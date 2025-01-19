@@ -36,7 +36,7 @@ class PDFIngest:
         return f"docs/{file.filename}"
 
     @staticmethod
-    def process_doc(doc_path: str):
+    def process_doc(doc_path: str): ############################## PDFLoader , RTChunker ###############################
         """
         Processes the PDF document: loads and chunks the document
         :param doc_path: The path to the PDF file
@@ -46,7 +46,7 @@ class PDFIngest:
         return RTChunker(docs=docs).split_docs()
 
     @classmethod
-    def get_vector_store(cls) -> ChromaVectorStore:
+    def get_vector_store(cls) -> ChromaVectorStore: ######################## CHROMA VECTOR STORE ###################
         """
         Returns a FAISSVectorStore object with embeddings
         :return: FAISSVectorStore instance
