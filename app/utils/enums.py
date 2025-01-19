@@ -23,4 +23,3 @@ class Embeddings(Enum):
     """Embedding Model Providers"""
 
     HUGGINGFACE = HFEmbeddings
-

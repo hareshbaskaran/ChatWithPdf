@@ -8,12 +8,12 @@ from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.schema import Document
 from langchain_core.output_parsers import PydanticOutputParser
 from services.llms import GeminiLLMProvider
+from settings import settings
 from utils.helpers import ChatService, convert_docs_to_text, parse_to_pydantic
 from utils.prompts import response_prompt
 
 from app.utils.loggers import logger
 from app.utils.models import ChatResponse, PDFUploadResponse
-from settings import settings
 
 app = FastAPI()
 
