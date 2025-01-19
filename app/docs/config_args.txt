@@ -1,0 +1,18 @@
+Configs :
+    #LLM
+        - provider -> Class
+        - model_name -> Args
+    #Vector Db
+        - Provider -> Class
+    #Embeddings
+        - Provider -> Class
+        - model -> Args
+    # Chunker
+        - Type ->
+    # Loader
+        - Type ->
+
+
+Enums :
+    # LLM
+        - model_name
