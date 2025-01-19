@@ -1,3 +1,4 @@
+from langchain_core.prompts import ChatPromptTemplate,FewShotChatMessagePromptTemplate
 ############### LLM Prompts ######################
 
 qa_prompt_template = """You are an AI language model assistant. Your task is 
@@ -23,3 +24,14 @@ response_prompt_template = """
             "citations": Union["Source 1", "Source 2", ...]
         }}
         """
+
+"""## generate few-shot prompt examples
+
+## provide dynamic few shot prompting 
+
+example_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("human", "{input}"),
+        ("ai", "{output")
+    ]
+)"""

@@ -35,6 +35,7 @@ class QAResponse(BaseModel):
 class ChatResponse(BaseModel):
     """
     Pydantic Model for Validating chat Response linked with Source Citations
+    Handle Duplicates by Union Citations
     """
 
     response: str

@@ -110,9 +110,6 @@ async def chat_with_pdf_latest(query: str = Form(...)):
     vector_store = ingest.get_vector_store()
 
     # Step 2: Define prompts for document retrieval and response generation
-    retriever_prompt = PromptTemplate(
-        template=qa_prompt_template, input_variables=["question"]
-    )
     response_prompt = PromptTemplate(
         template=response_prompt_template, input_variables=["query", "documents"]
     )
@@ -128,17 +125,20 @@ async def chat_with_pdf_latest(query: str = Form(...)):
     ).get_relevant_documents(question)
 
     # Step 4: Format retrieved documents into text
-    documents_text = "\n\n".join(
+    """documents_text = "\n\n".join(
         f"Source: {doc.metadata.get('source', 'Unknown')}\n{doc.page_content}"
         for doc in retrieved_docs
-    )
+    )"""
+
+    docs_text = "\n\n".join(
+        f"source: {doc.metadata['source']} "for doc in retrieved_docs)
 
     # Step 5: Parse the output into a Pydantic model
     output_parser = PydanticOutputParser(pydantic_object=ChatResponse)
 
     # Step 6: Use LLM chain with the refined prompt and return the response
     chain = LLMChain(llm=llm, prompt=response_prompt, output_parser=output_parser)
-    return chain.run({"query": query, "documents": documents_text})
+    return chain.run({"query": query, "documents": docs_text})
 
 
 if __name__ == "__main__":
