@@ -7,16 +7,15 @@ from langchain.indexes import index
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.schema import Document
 from langchain_core.output_parsers import PydanticOutputParser
-from services.llms import GeminiLLMProvider ################# GeminiLLMProvider ##########################
-from utils.helpers import PDFIngest, convert_docs_to_text, parse_to_pydantic
+from services.llms import GeminiLLMProvider
+from utils.enums import settings
+from utils.helpers import ChatService, convert_docs_to_text, parse_to_pydantic
 from utils.prompts import response_prompt
 
 from app.utils.models import ChatResponse, PDFUploadResponse
 
-# Initialize FastAPI application / PDFIngest Service
-app = FastAPI()
-ingest = PDFIngest()
 
+app = FastAPI()
 
 @app.get("/")
 async def root():
@@ -32,26 +31,26 @@ async def upload_pdf(file: UploadFile = File(...)):
     :return: Response indicating whether the upload and processing were successful.
     """
     # Create a virtual temporary file path
-    temp_file_path = await ingest.handle_temp_dir(file)
+    temp_file_path = await chat.handle_temp_dir(file)
 
     try:
         # Step 1: Process the PDF file
-        docs = ingest.process_doc(doc_path=temp_file_path)
+        docs = chat.process_pdfs(doc_path=temp_file_path)
 
         # Step 2: Retrieve the vector database
-        vector_store = ingest.get_vector_store()
+        vector_store = chat.get_vector_store()
 
         # Step 3: Add processed documents to the index
         idx = index(
             docs_source=docs,
-            record_manager=ingest.instantiate_record_manager(),
+            record_manager=chat.instantiate_record_manager(),
             vector_store=vector_store.get_vdb(),
             cleanup=None,
             source_id_key="source",
         )
 
         # Step 4: Handle duplicates in a modularized way
-        is_duplicate, response = ingest.process_duplicate_doc(idx, docs)
+        is_duplicate, response = chat.process_duplicate_doc(idx, docs)
 
         # Step 5: If no duplicates are found, add documents to the vector store
         if not is_duplicate:
@@ -81,7 +80,7 @@ async def chat_with_pdf(query: str = Form(...)):
     # Step 1: Initialize LLM and vector store
     try:
         llm = GeminiLLMProvider.get_llm()
-        vector_store = ingest.get_vector_store()
+        vector_store = chat.get_vector_store()
 
         # Step 2: Construct a QA Retrieval Chain
         qa_chain = RetrievalQA.from_chain_type(
@@ -113,7 +112,7 @@ async def chat_with_pdf_latest(query: str = Form(...)):
     try:
         # Step 1: Initialize LLM and vector store
         llm = GeminiLLMProvider.get_llm()
-        vector_store = ingest.get_vector_store()
+        vector_store = chat.get_vector_store()
 
         # Step 2: Use MultiQueryRetriever to fetch relevant documents
         retrieved_docs: List[Document] = MultiQueryRetriever.from_llm(
@@ -139,6 +138,12 @@ async def chat_with_pdf_latest(query: str = Form(...)):
 
 if __name__ == "__main__":
     import uvicorn
+
+    chat = ChatService(
+        llm=settings.get("LLM"),
+        embeddings=settings.get("EMBEDDINGS"),
+        vectorstore=settings.get("VECTOR_STORE"),
+    )
 
     # Run the FastAPI application
     uvicorn.run(app, host="127.0.0.1", port=8000)

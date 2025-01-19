@@ -12,4 +12,3 @@ SQLITE_DB_URL = "sqlite:///chatpdf_sqlmanager.sql"
 VECTOR_DB_PATH = "docs/out_data"
 
 ## Config File Configurations
-

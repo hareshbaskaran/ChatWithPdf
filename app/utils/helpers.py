@@ -3,15 +3,19 @@ from typing import Any, List
 
 from langchain.indexes import SQLRecordManager, index
 from langchain_core.documents import Document
-
 from app.services.chunkers import RTChunker
-from app.services.embeddings import HFEmbeddings
 from app.services.loaders import PDFLoader
 from app.services.vectordbs import ChromaVectorStore, FAISSVectorStore
+from app.services.embeddings import HFEmbeddings
 from app.utils.variables import SQL_MANAGER_NAMESPACE, SQLITE_DB_URL, VECTOR_DB_PATH
 
 
-class PDFIngest:
+class ChatService:
+    def __init__(self, llm, embeddings, vectorstore):
+        self.llm = llm
+        self.embeddings = embeddings
+        self.vectorstore = vectorstore
+
     @staticmethod
     def instantiate_record_manager() -> SQLRecordManager:
         """
@@ -36,7 +40,7 @@ class PDFIngest:
         return f"docs/{file.filename}"
 
     @staticmethod
-    def process_doc(doc_path: str): ############################## PDFLoader , RTChunker ###############################
+    def process_pdfs(doc_path: str):
         """
         Processes the PDF document: loads and chunks the document
         :param doc_path: The path to the PDF file
@@ -45,15 +49,15 @@ class PDFIngest:
         docs = PDFLoader.get_docs(doc_path=doc_path)
         return RTChunker(docs=docs).split_docs()
 
-    @classmethod
-    def get_vector_store(cls) -> ChromaVectorStore: ######################## CHROMA VECTOR STORE ###################
+    def get_vector_store(self) -> ChromaVectorStore:
+        ## todo : add from settings / class instantiated methods
         """
         Returns a FAISSVectorStore object with embeddings
         :return: FAISSVectorStore instance
         """
         return ChromaVectorStore(
             embeddings=HFEmbeddings.get_embeddings(),
-            vector_db_path=VECTOR_DB_PATH,
+            vector_db_path=VECTOR_DB_PATH
         )
 
     @staticmethod
@@ -69,9 +73,7 @@ class PDFIngest:
         return (False, "PDF Uploaded and Processed Sucessfully")
 
 
-### Retrieval Chain Methods
-
-
+### Retrieval Chain Method
 def parse_to_pydantic(result) -> Any:
     """
     Parse LLM response to a Pydantic Object
