@@ -3,10 +3,11 @@ from typing import Any, List
 
 from langchain.indexes import SQLRecordManager, index
 from langchain_core.documents import Document
+
 from app.services.chunkers import RTChunker
+from app.services.embeddings import HFEmbeddings
 from app.services.loaders import PDFLoader
 from app.services.vectordbs import ChromaVectorStore, FAISSVectorStore
-from app.services.embeddings import HFEmbeddings
 from app.utils.variables import SQL_MANAGER_NAMESPACE, SQLITE_DB_URL, VECTOR_DB_PATH
 
 
@@ -56,8 +57,7 @@ class ChatService:
         :return: FAISSVectorStore instance
         """
         return ChromaVectorStore(
-            embeddings=HFEmbeddings.get_embeddings(),
-            vector_db_path=VECTOR_DB_PATH
+            embeddings=HFEmbeddings.get_embeddings(), vector_db_path=VECTOR_DB_PATH
         )
 
     @staticmethod

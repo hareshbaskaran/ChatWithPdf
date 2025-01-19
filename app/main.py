@@ -14,8 +14,8 @@ from utils.prompts import response_prompt
 
 from app.utils.models import ChatResponse, PDFUploadResponse
 
-
 app = FastAPI()
+
 
 @app.get("/")
 async def root():
