@@ -12,6 +12,8 @@
     - Vector Store
     - Data Sink Paths (Optional, if stored in Docker Volumes)
 
+- Update Helper methods to be run from .env Configurations -> (not fixed yet in code)
+
 ## Design Features
 - Query Segregation :
     - User Query -> DB Query, LLM Query
