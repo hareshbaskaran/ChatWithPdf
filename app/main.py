@@ -21,14 +21,14 @@ app = FastAPI()
 @app.get("/")
 async def root():
     """API health check endpoint."""
-    logger.info("Root endpoint accessed.")
+    logger.info("API is running")
     return {"status": "API Running"}
 
 
 @app.post("/upload-pdf", response_model=PDFUploadResponse)
 async def upload_pdf(file: UploadFile = File(...)):
     """Upload and process a PDF document."""
-    logger.info("Upload PDF endpoint accessed.")
+    logger.info("Upload PDF Endpoint is starting")
     temp_file_path = await chat.handle_temp_dir(file)
 
     try:
@@ -47,7 +47,7 @@ async def upload_pdf(file: UploadFile = File(...)):
         if not is_duplicate:
             vector_store.add_docs_to_vector_db(docs=docs)
 
-        logger.info("PDF processed successfully.")
+        logger.info("PDF processed successfully")
         return PDFUploadResponse(message=response)
 
     except Exception as e:
@@ -57,7 +57,7 @@ async def upload_pdf(file: UploadFile = File(...)):
     finally:
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
-            logger.info("Temporary file cleaned up.")
+            logger.info("Cleaned up temporary files")
 
 
 @app.post("/chat-with-pdf")
@@ -67,7 +67,7 @@ async def chat_with_pdf(query: str = Form(...)):
     :param query:
     :return: LLM Response
     """
-    logger.info("Chat with PDF endpoint accessed.")
+    logger.info("Chat with PDF endpoint is starting")
     try:
         llm = GeminiLLMProvider.get_llm()
         vector_store = chat.get_vector_store()
@@ -79,7 +79,7 @@ async def chat_with_pdf(query: str = Form(...)):
         )
 
         result = qa_chain({"query": query})
-        logger.info("Query processed successfully.")
+        logger.info("Query processed successfully")
         return parse_to_pydantic(result)
 
     except Exception as e:
@@ -94,7 +94,7 @@ async def chat_with_pdf_latest(query: str = Form(...)):
     :param query:
     :return: LLM Response
     """
-    logger.info("Chat with PDF latest endpoint accessed.")
+    logger.info("Chat with PDF latest endpoint starting")
     try:
         llm = GeminiLLMProvider.get_llm()
         vector_store = chat.get_vector_store()
@@ -113,7 +113,7 @@ async def chat_with_pdf_latest(query: str = Form(...)):
         response = chain.run(
             {"query": query, "documents": convert_docs_to_text(retrieved_docs)}
         )
-        logger.info("Query processed successfully with advanced retriever.")
+        logger.info("Query processed successfully")
         return response
 
     except Exception as e:
@@ -131,5 +131,6 @@ if __name__ == "__main__":
         vectorstore=settings.get("VECTOR_STORE"),
     )
 
-    logger.info("Starting FastAPI server.")
+    logger.info("Starting Unicorn server")
     uvicorn.run(app, host="127.0.0.1", port=8000)
+    logger.info("FastApi Endpoint is Running Successfully")

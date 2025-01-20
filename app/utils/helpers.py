@@ -51,7 +51,7 @@ class ChatService:
         return RTChunker(docs=docs).split_docs()
 
     def get_vector_store(self) -> ChromaVectorStore:
-        ## todo : add from settings / class instantiated methods
+        # todo : add from settings / class instantiated methods
         """
         Returns a FAISSVectorStore object with embeddings
         :return: FAISSVectorStore instance
@@ -68,6 +68,7 @@ class ChatService:
         :param docs: List of documents
         :return: (Boolean indicating if the document is a duplicate, Document Upload Response)
         """
+
         if idx["num_skipped"] == len(docs):
             return (True, "Document already uploaded")
         return (False, "PDF Uploaded and Processed Sucessfully")
