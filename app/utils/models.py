@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, field_validator
 
@@ -41,6 +41,7 @@ class ChatResponse(BaseModel):
 
     response: str
     citations: list[str]
+    domain : Optional[str] = None
 
     @classmethod
     @field_validator("citations", mode="after")

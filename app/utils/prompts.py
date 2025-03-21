@@ -15,22 +15,34 @@ query_retriever_prompt = """You are an AI language model assistant. Your task is
     questions separated by newlines. Original question: {question}"""
 
 response_prompt_template = """
-        For the given query:
-        {query}
+    You are an AI that answers user questions based on provided documents.
 
-        From the following documents:
-        {documents}
+    For the given query:
+    {query}
 
-        Provide the necessary response and strictly cite only the used sources and unique document source names. 
-        The output must be in the following JSON format:
-        {{
-            "response": "Your generated response here",
-            "citations": Union["Source 1", "Source 2", ...]
-        }}
-        """
+    From the following documents:
+    {documents}
 
-######## LLM Prompts ####################
+    Follow these strict rules:
+    1. **Use only the given documents** to generate the response.
+    2. **Cite only the sources actually used** in the response.
+    3. **Extract `domain` strictly from metadata['domain']** of the cited documents.
+    4. **Ensure `domain` is always a valid string (never null).** 
+       - If multiple documents are cited, choose the most relevant domain.
+       - If no domain is available, use `"Unknown"` instead of `null`.
+    5. The output must be **strictly in JSON format**, following this schema:
+
+    {{
+        "response": "Your generated response here",
+        "citations": List[str],  # Unique document source names strictly from cited documents
+        "domain": str  # Extracted strictly from metadata['domain'], must never be null
+    }}
+
+    Now, generate the structured JSON response.
+"""
 
 response_prompt = PromptTemplate(
-    template=response_prompt_template, input_variables=["query", "documents"]
+    template=response_prompt_template,
+
+    input_variables=["query", "documents"]
 )

@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from langchain.chains import LLMChain, RetrievalQA
@@ -26,13 +26,23 @@ async def root():
 
 
 @app.post("/upload-pdf", response_model=PDFUploadResponse)
-async def upload_pdf(file: UploadFile = File(...)):
-    """Upload and process a PDF document."""
-    logger.info("Upload PDF Endpoint is starting")
+async def upload_pdf(
+    file: UploadFile = File(...),
+    domain: Optional[str] = Form(...)
+):
+    """Upload and process a PDF document with an additional 'domain' field."""
+    logger.info(f"Upload PDF Endpoint is starting for domain: {domain}")
     temp_file_path = await chat.handle_temp_dir(file)
 
     try:
         docs = chat.process_pdfs(doc_path=temp_file_path)
+
+        # Annotate documents with additional metadata -> domain , etc..
+        for doc in docs:
+            doc.metadata["domain"] = domain  # Store domain in metadata
+
+        print(docs[-1])
+
         vector_store = chat.get_vector_store()
 
         idx = index(
@@ -47,7 +57,7 @@ async def upload_pdf(file: UploadFile = File(...)):
         if not is_duplicate:
             vector_store.add_docs_to_vector_db(docs=docs)
 
-        logger.info("PDF processed successfully")
+        logger.info(f"Paper Uploaded and Processed successfully for domain: {domain}")
         return PDFUploadResponse(message=response)
 
     except Exception as e:
