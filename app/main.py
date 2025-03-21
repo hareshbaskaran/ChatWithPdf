@@ -73,33 +73,6 @@ async def upload_pdf(
             os.remove(temp_file_path)
             logger.info("Cleaned up temporary files")
 
-#
-# @app.post("/chat-with-pdf")
-# async def chat_with_pdf(query: str = Form(...)):
-#     """
-#     EndPoint to Interact with PDF
-#     :param query:
-#     :return: LLM Response
-#     """
-#     logger.info("Chat with PDF endpoint is starting")
-#     try:
-#         llm = GeminiLLMProvider.get_llm()
-#         vector_store = chat.get_vector_store()
-#
-#         qa_chain = RetrievalQA.from_chain_type(
-#             llm=llm,
-#             retriever=vector_store.get_vdb_as_retriever(),
-#             return_source_documents=True,
-#         )
-#
-#         result = qa_chain({"query": query})
-#         logger.info("Query processed successfully")
-#         return parse_to_pydantic(result)
-#
-#     except Exception as e:
-#         logger.error(f"Error in chat_with_pdf: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-
 
 @app.post("/chat-with-pdf:latest")
 async def chat_with_pdf_latest(query: str = Form(...)):
