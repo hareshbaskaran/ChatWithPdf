@@ -1,5 +1,5 @@
 from typing import List, Optional
-
+import uuid
 from pydantic import BaseModel, field_validator
 
 ############# Response models ##############
@@ -35,15 +35,15 @@ class QAResponse(BaseModel):
 
 class ChatResponse(BaseModel):
     """
-    Pydantic Model for Validating chat Response linked with Source Citations
-    Handle Duplicates by Union Citations
+    Pydantic Model for Validating Chat Response linked with Source Citations.
     """
 
     response: str
-    citations: list[str]
-    domain : Optional[str] = None
-
-    @classmethod
-    @field_validator("citations", mode="after")
-    def union_citations(cls, citations):
-        return List[set(citations)]
+    doc_ids: List[uuid.UUID]
+    # citations: list[str]
+    # domain : Optional[str] = None
+    #
+    # @classmethod
+    # @field_validator("citations", mode="after")
+    # def union_citations(cls, citations):
+    #     return List[set(citations)]

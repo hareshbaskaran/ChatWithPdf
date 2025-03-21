@@ -34,15 +34,11 @@ response_prompt_template = """
 
     {{
         "response": "Your generated response here",
-        "citations": List[str],  # Unique document source names strictly from cited documents
-        "domain": str  # Extracted strictly from metadata['domain'], must never be null
+        "docs_id" : key of all passed documents is a unique UUID.uuid4() **notify what documents have been used by sending list of uuid.uuid4 here
     }}
 
-    Now, generate the structured JSON response.
+    Now, generate the structured pydantic output.
+    Output Parser Information is given below : 
+    {parser_information}
 """
 
-response_prompt = PromptTemplate(
-    template=response_prompt_template,
-
-    input_variables=["query", "documents"]
-)
