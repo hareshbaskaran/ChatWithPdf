@@ -9,8 +9,13 @@ services:
       - "8000:8000"
     environment:
       GOOGLE_API_KEY: AIzaSyA2-r052GsiexJokeCDeHpbZsBUt17dND0
+      SQLITE_DB_URL: "sqlite:////data/sqlite/chatpdf_sqlmanager.sql"
+      VECTOR_DB_PATH: "/data/vector_store"
     networks:
       - app_network
+    volumes:
+      - sqlite_data:/data/sqlite
+      - vectorstore_data:/data/vector_store
 
   streamlit:
     build:
@@ -23,7 +28,14 @@ services:
       - "8501:8501"
     networks:
       - app_network
+    volumes:
+      - sqlite_data:/data/sqlite
+      - vectorstore_data:/data/vector_store
 
 networks:
   app_network:
     driver: bridge
+
+volumes:
+  sqlite_data:
+  vectorstore_data:

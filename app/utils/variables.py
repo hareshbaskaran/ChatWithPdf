@@ -7,7 +7,7 @@ load_dotenv()
 ### Local Storage Variables and Path configurations ######
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-SQLITE_DB_URL = "sqlite:///chatpdf_sqlmanager.sql"
+SQL_MANAGER_NAMESPACE = f"PDFChat"
 
-VECTOR_DB_PATH = "docs/out_data"
-SQL_MANAGER_NAMESPACE = f"FAISS/chatpdf"
+SQLITE_DB_URL = os.getenv("SQLITE_DB_URL", "sqlite:////data/sqlite/chatpdf_sqlmanager.sql")
+VECTOR_DB_PATH = os.getenv("VECTOR_DB_PATH", "/data/vector_store")

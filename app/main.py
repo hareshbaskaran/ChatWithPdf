@@ -174,6 +174,10 @@ if __name__ == "__main__":
 
 
 """
+transformers
+sentence-transformers
+opencv-python
+
 docker compose build --no-cache
 docker compose up -d
 """

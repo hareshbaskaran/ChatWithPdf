@@ -7,9 +7,7 @@ langchain-google-genai
 fastapi
 python-multipart
 uvicorn
-transformers
-sentence-transformers
-opencv-python
+pypdf
 pdf2image
 pytesseract
 python-magic
