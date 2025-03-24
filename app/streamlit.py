@@ -8,7 +8,9 @@ FASTAPI_URL = "http://localhost:8000"
 
 st.set_page_config(page_title="Chat with PDFs", layout="wide")
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -24,7 +26,9 @@ with tab1:
         if uploaded_file and domain:
             files = {"file": uploaded_file.getvalue()}
             data = {"domain": domain}
-            response = requests.post(f"{FASTAPI_URL}/upload-pdf", files=files, data=data)
+            response = requests.post(
+                f"{FASTAPI_URL}/upload-pdf", files=files, data=data
+            )
 
             if response.status_code == 200:
                 st.success(response.json())
@@ -40,21 +44,29 @@ with tab2:
     if st.button("Get Response"):
         if query:
             messages_payload = [
-                {"type": "human", "content": msg.content} for msg in st.session_state.messages
+                {"type": "human", "content": msg.content}
+                for msg in st.session_state.messages
             ]
 
             messages_payload.append({"type": "human", "content": query})
             request_payload = json.dumps(messages_payload)
 
             logging.info(f"Sending request: {request_payload}")
-            response = requests.post(f"{FASTAPI_URL}/chat-with-pdf:latest", data={"query": request_payload})
+            response = requests.post(
+                f"{FASTAPI_URL}/chat-with-pdf:latest", data={"query": request_payload}
+            )
 
             if response.status_code == 200:
                 chat_response = response.json()
-                messages_payload.append({"type": "ai", "content": chat_response['response']})
+                messages_payload.append(
+                    {"type": "ai", "content": chat_response["response"]}
+                )
                 st.session_state.messages = [
-                    HumanMessage(msg["content"]) if msg["type"] == "human" else HumanMessage(msg["content"]) for msg in
-                    messages_payload]
+                    HumanMessage(msg["content"])
+                    if msg["type"] == "human"
+                    else HumanMessage(msg["content"])
+                    for msg in messages_payload
+                ]
 
                 logging.info(f"Received response: {chat_response}")
 

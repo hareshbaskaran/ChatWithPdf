@@ -1,4 +1,3 @@
-
 query_retriever_prompt = """You are an AI language model assistant. Your task is 
     to generate 5 different versions of the given user 
     question to retrieve relevant documents from a vector  database. 
@@ -37,4 +36,3 @@ response_prompt_template = """
     Output Parser Information is given below : 
     {parser_information}
 """
-

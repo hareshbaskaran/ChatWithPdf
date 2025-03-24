@@ -30,10 +30,7 @@ async def root():
 
 
 @app.post("/upload-pdf", response_model=PDFUploadResponse)
-async def upload_pdf(
-    file: UploadFile = File(...),
-    domain: Optional[str] = Form(...)
-):
+async def upload_pdf(file: UploadFile = File(...), domain: Optional[str] = Form(...)):
     """Upload and process a PDF document with an additional 'domain' field."""
     logger.info(f"Upload PDF Endpoint is starting for domain: {domain}")
     temp_file_path = await chat.handle_temp_dir(file)
@@ -101,11 +98,12 @@ async def chat_with_pdf_latest(query: str = Form(...)):
         print("**** INPUT DOCUMENTS ********* \n\n")
         pprint.pprint(input_docs)
 
-        format_instructions = PydanticOutputParser(pydantic_object=ChatResponse).get_format_instructions()
+        format_instructions = PydanticOutputParser(
+            pydantic_object=ChatResponse
+        ).get_format_instructions()
         prompt = PromptTemplate(
             template=response_prompt_template,
             input_variables=["query", "documents", "parser_information"],
-
         )
         chain = LLMChain(
             llm=llm,
@@ -113,7 +111,13 @@ async def chat_with_pdf_latest(query: str = Form(...)):
             output_parser=PydanticOutputParser(pydantic_object=ChatResponse),
         )
 
-        response = chain.run({"query": query, "documents": str(input_docs), "parser_information" : format_instructions})
+        response = chain.run(
+            {
+                "query": query,
+                "documents": str(input_docs),
+                "parser_information": format_instructions,
+            }
+        )
         chat_response = ChatResponse.model_validate(response)
         print("**** CHAT RESPONSE ********* \n\n")
         pprint.pprint(chat_response)
@@ -126,23 +130,22 @@ async def chat_with_pdf_latest(query: str = Form(...)):
                 raise ValueError("Invalid Response of Unique ID")
 
             parsed_doc = parsed_docs[doc_id]
-            source = parsed_doc['metadata']['source']
-            domain = parsed_doc['metadata']['domain']
+            source = parsed_doc["metadata"]["source"]
+            domain = parsed_doc["metadata"]["domain"]
 
             if source not in citations:
                 citations[source] = domain
 
         parsed_citation = [
-            {
-                "source" : citation ,
-                 "domain" : citations[citation]
-            } for citation in citations
+            {"source": citation, "domain": citations[citation]}
+            for citation in citations
         ]
         return {"response": chat_response.response, "citations": parsed_citation}
 
     except Exception as e:
         logger.error(f"Error in chat_with_pdf_latest: {str(e)}")
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
 
 if __name__ == "__main__":
     import uvicorn
