@@ -7,7 +7,7 @@ from langchain.vectorstores import FAISS, Chroma
 from langchain_core.embeddings import Embeddings
 from langchain_core.retrievers import BaseRetriever
 
-from app.utils.loggers import logger
+from utils.loggers import logger
 
 
 ### Works only for Local Storage - VectorDB Indexes ###

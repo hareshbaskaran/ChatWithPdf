@@ -4,7 +4,7 @@ import requests
 import json
 import logging
 
-FASTAPI_URL = "http://localhost:8000"
+FASTAPI_URL = "http://0.0.0.0:8000"
 
 st.set_page_config(page_title="Chat with PDFs", layout="wide")
 

@@ -1,9 +1,9 @@
 from enum import Enum
 
 # define custom services
-from app.services.embeddings import HFEmbeddings
-from app.services.llms import GeminiLLMProvider
-from app.services.vectordbs import ChromaVectorStore, FAISSVectorStore
+from services.embeddings import HFEmbeddings
+from services.llms import GeminiLLMProvider
+from services.vectordbs import ChromaVectorStore, FAISSVectorStore
 
 
 class LLMModels(Enum):

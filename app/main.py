@@ -163,7 +163,7 @@ if __name__ == "__main__":
     )
 
     logger.info("Starting Unicorn server")
-    uvicorn.run(route, host="127.0.0.1", port=8000)
+    uvicorn.run(route, host="0.0.0.0", port=8000)
     logger.info("FastApi Endpoint is Running Successfully")
 
 
