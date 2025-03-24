@@ -1,8 +1,18 @@
 services:
-  app:
-    build: .
-    image: "hareshdev0208/chatwithpdf:latest"
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
     ports:
       - "8000:8000"
+    environment:
+      - AIzaSyA2-r052GsiexJokeCDeHpbZsBUt17dND0
 
-
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    depends_on:
+      - fastapi
+    ports:
+      - "8501:8501"

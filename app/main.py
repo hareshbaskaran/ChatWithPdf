@@ -10,25 +10,26 @@ from langchain_core.messages import BaseMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
 
-from app.utils.prompts import response_prompt_template
+
+from utils.prompts import response_prompt_template
 from services.llms import GeminiLLMProvider
 from settings import settings
 from utils.helpers import ChatService, convert_docs_to_text, parse_to_pydantic
 
-from app.utils.loggers import logger
-from app.utils.models import ChatResponse, PDFUploadResponse
+from utils.loggers import logger
+from utils.models import ChatResponse, PDFUploadResponse
 
-app = FastAPI()
+route = FastAPI()
 
 
-@app.get("/")
+@route.get("/")
 async def root():
     """API health check endpoint."""
     logger.info("API is running")
     return {"status": "API Running"}
 
 
-@app.post("/upload-pdf", response_model=PDFUploadResponse)
+@route.post("/upload-pdf", response_model=PDFUploadResponse)
 async def upload_pdf(file: UploadFile = File(...), domain: Optional[str] = Form(...)):
     """Upload and process a PDF document with an additional 'domain' field."""
     logger.info(f"Upload PDF Endpoint is starting for domain: {domain}")
@@ -70,7 +71,7 @@ async def upload_pdf(file: UploadFile = File(...), domain: Optional[str] = Form(
             logger.info("Cleaned up temporary files")
 
 
-@app.post("/chat-with-pdf:latest")
+@route.post("/chat-with-pdf:latest")
 async def chat_with_pdf_latest(query: str = Form(...)):
     """Updated Endpoint to Retrieve Relevant Documents and Process User Query
     version_fix -> Retrieve Unique Document Citation from LLM
@@ -162,5 +163,12 @@ if __name__ == "__main__":
     )
 
     logger.info("Starting Unicorn server")
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(route, host="127.0.0.1", port=8000)
     logger.info("FastApi Endpoint is Running Successfully")
+
+
+#faiss-cpu
+#torch
+#lark==1.1.5
+#onnx==1.16.1
+#langchain-experimental

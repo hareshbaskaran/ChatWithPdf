@@ -2,16 +2,11 @@ fastapi
 langchain
 langgraph
 langchain_community
-openai
 pydantic
-langchain-experimental
 langchain-google-genai
 fastapi
 python-multipart
 uvicorn
-faiss-cpu
-torch
-lark==1.1.5
 transformers
 sentence-transformers
 opencv-python
@@ -22,5 +17,5 @@ fastapi-sessions
 langchain-chroma
 langchain-huggingface
 streamlit
-onnx==1.16.1
+
 
