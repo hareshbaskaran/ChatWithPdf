@@ -1,10 +1,3 @@
-from langchain_core.prompts import (
-    ChatPromptTemplate,
-    FewShotChatMessagePromptTemplate,
-    PromptTemplate,
-)
-
-############### LLM Prompt Templates ######################
 
 query_retriever_prompt = """You are an AI language model assistant. Your task is 
     to generate 5 different versions of the given user 
@@ -17,7 +10,9 @@ query_retriever_prompt = """You are an AI language model assistant. Your task is
 response_prompt_template = """
     You are an AI that answers user questions based on provided documents.
 
-    For the given query:
+    For the given query - last message is the query and rest are 
+    history of messages to provide ocntextual understanding and relevant chat 
+    history informations:
     {query}
 
     From the following documents:
@@ -31,7 +26,8 @@ response_prompt_template = """
        - If multiple documents are cited, choose the most relevant domain.
        - If no domain is available, use `"Unknown"` instead of `null`.
     5. The output must be **strictly in JSON format**, following this schema:
-
+    6. ** Strictly never expose or talk about document ids in response only must be in list of doc_ids**
+    7.** never provide any document id or any sort of document information in response**
     {{
         "response": "Your generated response here",
         "docs_id" : key of all passed documents is a unique UUID.uuid4() **notify what documents have been used by sending list of uuid.uuid4 here

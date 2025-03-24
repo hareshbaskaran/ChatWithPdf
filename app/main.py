@@ -1,13 +1,13 @@
 import os
 import pprint
 import uuid
-from typing import List, Optional
-
+from typing import List, Optional, Type
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from langchain.chains import LLMChain, RetrievalQA
 from langchain.indexes import index
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.schema import Document
+from langchain_core.messages import BaseMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
 
