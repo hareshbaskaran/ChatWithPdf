@@ -1,6 +1,5 @@
 import os
 import pprint
-import uuid
 from typing import List, Optional, Type
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from langchain.chains import LLMChain, RetrievalQA
@@ -88,19 +87,20 @@ async def chat_with_pdf_latest(query: str = Form(...)):
         ).get_relevant_documents(query)
 
         parsed_docs = {
-            str(uuid.uuid4()): {"content": doc.page_content, "metadata": doc.metadata}
-            for doc in retrieved_docs
+            i+1 : {"content": doc.page_content, "metadata": doc.metadata}
+            for i,doc in enumerate(retrieved_docs)
         }
-        print("**** PARSED DOCUMENTS ********* \n\n")
-        pprint.pprint(parsed_docs)
+        logger.debug("**** PARSED DOCUMENTS ********* \n\n")
+        logger.debug(parsed_docs)
 
-        input_docs = {doc_id: data["content"] for doc_id, data in parsed_docs.items()}
-        print("**** INPUT DOCUMENTS ********* \n\n")
-        pprint.pprint(input_docs)
+        input_docs = {
+            doc_id: data["content"]
+            for doc_id, data in parsed_docs.items()
+        }
+        logger.debug("**** INPUT DOCUMENTS ********* \n\n")
+        logger.debug(input_docs)
 
-        format_instructions = PydanticOutputParser(
-            pydantic_object=ChatResponse
-        ).get_format_instructions()
+
         prompt = PromptTemplate(
             template=response_prompt_template,
             input_variables=["query", "documents", "parser_information"],
@@ -115,17 +115,18 @@ async def chat_with_pdf_latest(query: str = Form(...)):
             {
                 "query": query,
                 "documents": str(input_docs),
-                "parser_information": format_instructions,
+                "parser_information": PydanticOutputParser(
+            pydantic_object=ChatResponse
+        ).get_format_instructions(),
             }
         )
         chat_response = ChatResponse.model_validate(response)
-        print("**** CHAT RESPONSE ********* \n\n")
-        pprint.pprint(chat_response)
+        logger.info("**** CHAT RESPONSE ********* \n\n")
+        logger.info(chat_response.model_dump_json())
 
         citations = {}
 
         for doc_id in chat_response.doc_ids:
-            doc_id = str(doc_id)
             if doc_id not in parsed_docs:
                 raise ValueError("Invalid Response of Unique ID")
 
@@ -140,7 +141,10 @@ async def chat_with_pdf_latest(query: str = Form(...)):
             {"source": citation, "domain": citations[citation]}
             for citation in citations
         ]
-        return {"response": chat_response.response, "citations": parsed_citation}
+        return {
+            "response": chat_response.response,
+            "citations": parsed_citation
+        }
 
     except Exception as e:
         logger.error(f"Error in chat_with_pdf_latest: {str(e)}")

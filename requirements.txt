@@ -21,9 +21,6 @@ python-magic
 fastapi-sessions
 langchain-chroma
 langchain-huggingface
+streamlit
 onnx==1.16.1
 
-
-isort
-doq
-codespell

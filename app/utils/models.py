@@ -1,6 +1,5 @@
 from typing import List, Optional
-import uuid
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, Field
 
 ############# Response models ##############
 
@@ -33,17 +32,14 @@ class QAResponse(BaseModel):
     citations: List[str]
 
 
+
 class ChatResponse(BaseModel):
     """
     Pydantic Model for Validating Chat Response linked with Source Citations.
     """
 
-    response: str
-    doc_ids: List[uuid.UUID]
-    # citations: list[str]
-    # domain : Optional[str] = None
-    #
-    # @classmethod
-    # @field_validator("citations", mode="after")
-    # def union_citations(cls, citations):
-    #     return List[set(citations)]
+    response: str = Field(description="Generated response based on provided documents and user query")
+    doc_ids: List[int] = Field(description="List of document IDs used to generate the response")
+
+
+
