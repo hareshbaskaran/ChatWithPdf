@@ -7,6 +7,4 @@ RUN pip install streamlit langchain langchain_core
 
 COPY . .
 
-EXPOSE 8000
-
 CMD ["streamlit", "run", "app/streamlit.py"]

@@ -19,6 +19,12 @@ from utils.helpers import ChatService, convert_docs_to_text, parse_to_pydantic
 from utils.loggers import logger
 from utils.models import ChatResponse, PDFUploadResponse
 
+chat = ChatService(
+    llm=settings.get("LLM"),
+    embeddings=settings.get("EMBEDDINGS"),
+    vectorstore=settings.get("VECTOR_STORE"),
+)
+
 route = FastAPI()
 
 
@@ -155,13 +161,6 @@ async def chat_with_pdf_latest(query: str = Form(...)):
 if __name__ == "__main__":
     import uvicorn
 
-    logger.info("Initializing ChatService.")
-    chat = ChatService(
-        llm=settings.get("LLM"),
-        embeddings=settings.get("EMBEDDINGS"),
-        vectorstore=settings.get("VECTOR_STORE"),
-    )
-
     logger.info("Starting Unicorn server")
     uvicorn.run(route, host="0.0.0.0", port=8000)
     logger.info("FastApi Endpoint is Running Successfully")
@@ -172,3 +171,9 @@ if __name__ == "__main__":
 #lark==1.1.5
 #onnx==1.16.1
 #langchain-experimental
+
+
+"""
+docker compose build --no-cache
+docker compose up -d
+"""
