@@ -44,12 +44,9 @@ with tab2:
 
     if st.button("Get Response"):
         if query:
-            messages_payload = [
-                {"type": "human", "content": msg.content}
-                for msg in st.session_state.messages
-            ]
+            messages_payload = st.session_state.get('messages',[])
 
-            messages_payload.append({"type": "human", "content": query})
+            messages_payload.append({"role": "human", "content": query})
             request_payload = json.dumps(messages_payload)
 
             logging.info(f"Sending request: {request_payload}")
@@ -60,14 +57,12 @@ with tab2:
             if response.status_code == 200:
                 chat_response = response.json()
                 messages_payload.append(
-                    {"type": "ai", "content": chat_response["response"]}
+                    {"role": "ai", "content": chat_response["response"]}
                 )
-                st.session_state.messages = [
-                    HumanMessage(msg["content"])
-                    if msg["type"] == "human"
-                    else HumanMessage(msg["content"])
-                    for msg in messages_payload
-                ]
+                st.session_state.messages = messages_payload
+                logging.info(
+                    f"Message History : {request_payload}"
+                )
 
                 logging.info(f"Received response: {chat_response}")
 
