@@ -3,7 +3,7 @@ LABEL authors="viewzen_labs"
 
 COPY requirements.txt .
 
-RUN pip install streamlit langchain langchain_core
+RUN pip install streamlit langchain langchain_core aiohttp aiofiles asyncio
 
 COPY . .
 

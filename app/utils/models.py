@@ -12,6 +12,10 @@ class PDFUploadResponse(BaseModel):
 
     message: str
 
+class PDFBibUploadResponse(BaseModel):
+    message: str
+    bib_metadata: Optional[dict] = None
+
 
 class LLMResponse(BaseModel):
     """

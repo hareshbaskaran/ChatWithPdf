@@ -1,6 +1,8 @@
 import os
 import pprint
 from typing import List, Optional, Type
+import json
+import bibtexparser
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from langchain.chains import LLMChain, RetrievalQA
 from langchain.indexes import index
@@ -17,7 +19,7 @@ from settings import settings
 from utils.helpers import ChatService, convert_docs_to_text, parse_to_pydantic
 
 from utils.loggers import logger
-from utils.models import ChatResponse, PDFUploadResponse
+from utils.models import ChatResponse, PDFUploadResponse, PDFBibUploadResponse
 
 chat = ChatService(
     llm=settings.get("LLM"),
@@ -35,8 +37,75 @@ async def root():
     return {"status": "API Running"}
 
 
+
+@route.post("/upload", response_model=PDFBibUploadResponse)
+async def upload(
+        file: UploadFile = File(...),
+        bib_file: UploadFile = File(...),
+        domain: Optional[str] = Form(...)):
+    """Upload and process a PDF document with an additional 'domain' field."""
+    logger.info(f"Upload PDF Endpoint is starting for domain: {domain}")
+    # Handle PDF file
+    temp_file_path = await chat.handle_temp_dir(file)
+
+    try:
+        # Read and parse the BibTeX file
+        bib: str = (await bib_file.read()).decode("utf-8")  # Convert bytes to string
+        bib_data = bibtexparser.loads(bib)
+
+        # Extract BibTeX metadata
+        bib_entries = bib_data.entries if hasattr(bib_data, "entries") else []
+        bib_metadata = {entry.get("ID", f"entry_{i}"): entry for i, entry in enumerate(bib_entries)}
+
+        # Process the PDF
+        docs = chat.process_pdfs(doc_path=temp_file_path)
+
+        # Annotate documents with additional metadata (domain & BibTeX data)
+        for doc in docs:
+            doc.metadata["domain"] = domain
+
+            # ✅ Add each BibTeX field as an individual metadata key-value pair
+            for entry_id, entry_data in bib_metadata.items():
+                for key, value in entry_data.items():
+                    if key.lower() != "id":  # Skip ID as it's redundant
+                        doc.metadata[f"bib_{key.lower()}"] = value  # Prefix `bib_` for clarity
+
+        # Process document indexing
+        vector_store = chat.get_vector_store()
+        idx = index(
+            docs_source=docs,
+            record_manager=chat.instantiate_record_manager(),
+            vector_store=vector_store.get_vdb(),
+            cleanup=None,
+            source_id_key="source",
+        )
+
+        # Handle duplicate check & add to vector store
+        is_duplicate, response = chat.process_duplicate_doc(idx, docs)
+        if not is_duplicate:
+            vector_store.add_docs_to_vector_db(docs=docs)
+
+        logger.info(f"Paper Uploaded and Processed successfully for domain: {domain}")
+
+        return PDFBibUploadResponse(
+            message=response,
+            bib_metadata=bib_metadata
+        )
+
+    except Exception as e:
+        logger.error(f"Error in upload_pdf: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+    finally:
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+            logger.info("Cleaned up temporary files")
+
+            
 @route.post("/upload-pdf", response_model=PDFUploadResponse)
-async def upload_pdf(file: UploadFile = File(...), domain: Optional[str] = Form(...)):
+async def upload_pdf(
+        file: UploadFile = File(...),
+        domain: Optional[str] = Form(...)):
     """Upload and process a PDF document with an additional 'domain' field."""
     logger.info(f"Upload PDF Endpoint is starting for domain: {domain}")
     temp_file_path = await chat.handle_temp_dir(file)
